@@ -1,6 +1,5 @@
 node_modules
-scripts
-
+/scripts
 babel.config.js
 vue.config.js
 yarn.lock
