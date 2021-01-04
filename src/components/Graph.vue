@@ -272,7 +272,7 @@ text {
   opacity: 0.3
 }
 .graph {
-  stroke: #10cd3f;
+  stroke: #1900ff;
   stroke-width: 2px;
 }
 </style>
