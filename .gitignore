@@ -1,6 +1,5 @@
 node_modules
 scripts
-/dist
 
 babel.config.js
 vue.config.js
