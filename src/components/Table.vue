@@ -95,7 +95,9 @@ export default {
 <style>
 #table {
   float: left;
-  margin-left: 50px;
+  margin-left: 100px;
+  margin-top: 120px;
+  margin-right: 100px;
 }
 #values {  
   border-collapse: collapse;

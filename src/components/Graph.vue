@@ -1,4 +1,5 @@
 <template>
+  <div class="spacer">
     <svg>
       <line x1="40" y1="490" x2="530" y2="490" stroke="black"/> <!-- X axis line -->
       <line x1="40" y1="0" x2="40" y2="490" stroke="black"/> <!-- Y axis line -->
@@ -22,9 +23,10 @@
       <line class="details" v-for="userPoint in values.values" v-bind:key="userPoint" x1="26" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" :y2="490 - userPointY(userPoint)" :visibility="userPoint.pointNameVisibility" />
       <text class="detailsText" v-for="userPoint in values.values" v-bind:key="userPoint" x="12" :y="490 - userPointY(userPoint) + 4" :visibility="userPoint.pointNameVisibility">{{userPoint.y}}</text>
 
+      <text v-for="userPoint in values.values" v-bind:key="userPoint" :x="userPointX(userPoint) + 40" :y="490 - userPointY(userPoint) - 10" :visibility="userPoint.pointNameVisibility">{{userPoint.valueName}}</text>
+
       <!-- User points -->
       <circle class="userPoints" v-for="userPoint in values.values" v-bind:key="userPoint"  :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="3" />
-      <text v-for="userPoint in values.values" v-bind:key="userPoint" :x="userPointX(userPoint) + 40" :y="490 - userPointY(userPoint) - 10" :visibility="userPoint.pointNameVisibility">{{userPoint.valueName}}</text>
       <svg v-if="values.toggle == false">
         <line class="graph" v-for="userPoint in values.values" v-bind:key="userPoint.index" :x1="graphX(userPoint) + 40" :y1="490 - graphY(userPoint)" :x2="userPointX(userPoint) + 40" :y2="490 - userPointY(userPoint)" />
       </svg>
@@ -32,6 +34,7 @@
       <!-- User point hitbox-->
       <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red"/>
     </svg>
+  </div>
 </template>
 
 <script>
@@ -73,7 +76,7 @@ export default {
       },
       userPoints: [], //points on graph added by user
       s: "", // selected axis
-      dragging: false,
+      dragging: false
     }
   },
   props: {
@@ -102,6 +105,7 @@ export default {
             this.yAxis.posSave = this.yAxis.posSave + this.yAxis.start - e.clientY
           }
         this.dragging = false
+        this.s.drag = 0;
       }
     },
     move: function(e) {
@@ -110,13 +114,14 @@ export default {
        
         if(this.s == this.xAxis) {
           cursor = e.clientX //if selected X axis then use x poisition of pointer, otherwise y
-          this.s.drag = (this.s.start - cursor) 
+          this.s.drag = (this.s.start - cursor)
           this.s.line = 500 - this.s.posSave - this.s.drag;
         } else {
           cursor = e.clientY
           this.s.drag = -(this.s.start - cursor)
           this.s.line = 500 + this.s.posSave - this.s.drag;
         }
+       
         
         //adding new point / removing a point
         if(Math.abs(500 - this.s.line) > this.s.points[0].x) {
@@ -141,7 +146,7 @@ export default {
 
         //if axis is divided into more than 20 points, then reset back to 10 and multiply points by 2
         //if axis is divided into less than 5 points, then reset back to 10 and divide points by 2 
-        if(this.s.points.length > 20 || this.s.points.length < 6) {
+        if(this.s.points.length > 20 || this.s.points.length < 6 && this.s.mult > 0.007) {
           var n;
           if(this.s.points.length > 20) {
             n = 2;
@@ -233,12 +238,15 @@ export default {
 </script>
 <style>
 svg{
-  float: left;
-  margin-left: 70px;
   width: 530px;
   height: 530px;
-  display: block;
-  margin: auto;
+}
+.spacer {
+  width: 530px;
+  height: 650px;
+  float: left;
+  display: flex;
+  align-items: flex-end
 }
 line {
   stroke: rgb(0, 0, 0);

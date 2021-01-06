@@ -32,7 +32,6 @@ export default {
 
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
-  margin-top: 60px;
   width: 2000px;
   height: 2000px;
 }
