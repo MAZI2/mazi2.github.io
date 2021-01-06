@@ -1,6 +1,8 @@
 <template>
+<div id="app" @mousedown="this.$refs.graf.startDrag($event)" @mousemove="this.$refs.graf.move($event)" @mouseup="this.$refs.graf.stopDrag($event)">
   <Table @newvalue="changevalue($event)"></Table>
   <Graph ref="graf" :values="sent"></Graph>
+</div>
 </template>
 
 <script>
@@ -31,6 +33,8 @@ export default {
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   margin-top: 60px;
+  width: 2000px;
+  height: 2000px;
 }
 body {
   margin: 0;

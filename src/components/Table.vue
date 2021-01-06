@@ -201,4 +201,10 @@ input:checked + .slider:before {
   margin: 0px;
   margin-bottom: -6px;
 }
+#graphLabel, #pointsLabel {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 </style>

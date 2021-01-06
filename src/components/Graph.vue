@@ -1,5 +1,4 @@
 <template>
-  <div id="Graph" @mousedown="startDrag" @mouseup="stopDrag" @mousemove="move" @mouseleave="stopDrag">
     <svg>
       <line x1="40" y1="490" x2="530" y2="490" stroke="black"/> <!-- X axis line -->
       <line x1="40" y1="0" x2="40" y2="490" stroke="black"/> <!-- Y axis line -->
@@ -8,7 +7,7 @@
       <line class="marks" v-for="point in yAxis.points" v-bind:key="point" x1="36" :y1="490 -point.x" x2="44" :y2="490 -point.x" /> <!-- marks on Y axis -->
 
       <line class="grid" v-for="point in xAxis.points" v-bind:key="point" :x1="point.x + 40" y1="0" :x2="point.x + 40" y2="490" /> <!-- vertical grid lines -->
-      <line class="grid" v-for="point in yAxis.points" v-bind:key="point" x1="40" :y1="490 -point.x" x2="530" :y2="490 -point.x" /> <!-- horizontal grid lines -->
+      <line class="grid" v-for="point in yAxis.points" v-bind:key="point" x1="40" :y1="490 -point.x" x2="530" :y2="490 - point.x" /> <!-- horizontal grid lines -->
 
       <text v-for="point in xAxis.points" v-bind:key="point" :x="point.x + 40" y="509">{{point.value}}</text> <!-- numbers below marks on X axis -->
       <text v-for="point in yAxis.points" v-bind:key="point" x="26" :y="490 - point.x + 5">{{point.value}}</text> <!-- numbers beside marks on Y axis -->
@@ -33,7 +32,6 @@
       <!-- User point hitbox-->
       <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red"/>
     </svg>
-  </div>
 </template>
 
 <script>
@@ -84,7 +82,7 @@ export default {
   methods: {
     startDrag: function(e) {
       //determines if pointer position is valid and if on X or Y axis
-      if(e.clientX < $("svg").offset().left + 530 && $("svg").offset().left + 30 < e.clientX && e.clientY < $("svg").offset().top + 510 && $("svg").offset().top < e.clientY) {
+      
         if(e.clientY < $("svg").offset().top + 500 && $("svg").offset().top + 480 < e.clientY) {
           this.s = this.xAxis; //selected axis
           this.dragging = true;
@@ -94,18 +92,16 @@ export default {
           this.dragging = true;
           this.yAxis.start = e.clientY;
         }
-      }
+      
     },
     stopDrag: function(e) {
       if(this.dragging) {
-        this.dragging = false;
-        if(e.clientX < $("svg").offset().left + 530 && $("svg").offset().left < e.clientX && e.clientY < $("svg").offset().top + 530 && $("svg").offset().top < e.clientY) {
           if(this.s == this.xAxis) {
             this.xAxis.posSave = this.xAxis.posSave + this.xAxis.start - e.clientX //saved position
           } else if(this.s == this.yAxis) {
             this.yAxis.posSave = this.yAxis.posSave + this.yAxis.start - e.clientY
           }
-        }
+        this.dragging = false
       }
     },
     move: function(e) {
@@ -165,7 +161,12 @@ export default {
 
         //set point numbers on axis 
         for(var c = 0; c < this.s.points.length; c++) {
-          this.s.points[c].value = (c + 1) * this.s.mult;
+          var val = (c + 1) * this.s.mult;
+          if(val < 1 && val.toString().split(".")[1].length > 2) {
+            this.s.points[c].value = val.toFixed(2);
+          } else {
+            this.s.points[c].value = val
+          }
         }
       }
     },
@@ -231,13 +232,13 @@ export default {
 }
 </script>
 <style>
-#Graph {
+svg{
   float: left;
   margin-left: 70px;
-}
-#Graph svg{
   width: 530px;
   height: 530px;
+  display: block;
+  margin: auto;
 }
 line {
   stroke: rgb(0, 0, 0);
