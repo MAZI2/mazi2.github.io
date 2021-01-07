@@ -134,6 +134,18 @@ export default {
     text-align: center;
     border: none;
 }
+#graphs {  
+  border-collapse: collapse;
+}
+#graphs input {
+    font-size: 15px;
+    width: 60px;
+    text-align: center;
+    border: none;
+}
+.input {
+    width: 110px;
+}
 td {
   text-align: center;
   border: 1px solid #ddd;
