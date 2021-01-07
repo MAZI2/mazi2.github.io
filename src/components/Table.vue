@@ -1,5 +1,23 @@
 <template>
   <div id="table">
+
+    <table id="graphs">
+      <tr v-for="graph in graphs" v-bind:key="graph">
+        <th><input @input="emit" v-model="graph.valueName"></th>      
+        <td class="input" @input="emit" ><input v-model="graph.input"></td>
+      </tr>
+    </table>
+    <table id="buttons"> <!-- + and - buttons -->
+      <td class="buttons">
+        <button @click="clickPlus">+</button>
+      </td>
+      <td class="buttons">
+        <button @click="clickMinus">−</button> 
+      </td>  
+    </table>
+
+    <hr>
+
     <p id="pointsLabel">Points</p>
 
     <hr> <!-- separator -->
@@ -19,10 +37,10 @@
 
     <table id="buttons"> <!-- + and - buttons -->
       <td class="buttons">
-        <button @click="clickPlus">+</button>
+        <button @click="clickPlus('point')">+</button>
       </td>
       <td class="buttons">
-        <button @click="clickMinus">−</button> 
+        <button @click="clickMinus('point')">−</button> 
       </td>  
     </table>
 
@@ -76,6 +94,7 @@ export default {
     this.graphs[0] = new graph();
     setTimeout(this.emit, 10);
 
+    this.graphs[0].input = 0;
     this.values[0].x = 4.5
     this.values[0].y = 6.5
   },

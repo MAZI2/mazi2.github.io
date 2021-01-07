@@ -34,6 +34,7 @@
       <!-- User point hitbox-->
       <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red"/>
     </svg>
+    {{status}}
   </div>
 </template>
 
@@ -76,7 +77,8 @@ export default {
       },
       userPoints: [], //points on graph added by user
       s: "", // selected axis
-      dragging: false
+      dragging: false,
+      status: ""
     }
   },
   props: {
