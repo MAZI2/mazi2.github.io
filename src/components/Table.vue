@@ -39,6 +39,7 @@
 
 <script>
 var count = 0;
+var countGraph = 0;
 
 function cell() {
   this.valueName = 'Point ' + (count + 1);
@@ -48,6 +49,14 @@ function cell() {
   this.lock = false;
   this.index = count;
   count++
+}
+
+function graph() {
+  this.valueName = 'Graph ' + (countGraph + 1);
+  this.input = "";
+  this.pointNameVisibility = "hidden"
+  this.index = countGraph;
+  countGraph++
 }
 
 export default {
@@ -64,6 +73,7 @@ export default {
   },
   created() {
     this.values[0] = new cell();
+    this.graphs[0] = new graph();
     setTimeout(this.emit, 10);
 
     this.values[0].x = 4.5
@@ -99,7 +109,7 @@ export default {
       }
     },
     emit: function() { //send collected values to graph
-      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle})
+      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, graphs: this.graphs})
     },
   }
 }
