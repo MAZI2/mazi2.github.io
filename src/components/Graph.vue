@@ -188,7 +188,6 @@ export default {
           }
         }
       }
-      this.status = this.yAxis.posSave
     },
     userPointX: function(value) { //translate X set by user to actual x position
       var x;
@@ -248,49 +247,62 @@ export default {
       }
       return y;
     },
-    autoscale: async function(event) {
+    autoscale: async function(event, callback, direction) {
       var point = this.values.values[this.values.values.length - 1]
-      
-      while(point.x > this.xAxis.points[this.xAxis.points.length - 2].value && point.y > this.yAxis.points[this.yAxis.points.length - 2].value) {
-        for(var i = 0; i < 9; i++) {
-          var saveX = this.xAxis.posSave;
-          var saveY = this.yAxis.posSave;
-
+           
+      for(var i = 0; i < 9; i++) {
+        var saveX = this.xAxis.posSave;
+        var saveY = this.yAxis.posSave;
+        
+        if(direction == "right") {
           this.yAxis.posSave = saveY - 25;
           this.xAxis.posSave = saveX + 25;
-          
+        } else if(direction == "left") {
+          this.yAxis.posSave = saveY + 25;
+          this.xAxis.posSave = saveX - 25;
+        }
+        if(callback == "both" || callback == "x") {
           this.autoscalex = true; 
           this.move(event)
+        }
+        if(callback == "both" || callback == "y") {
           this.autoscaley = true;
           this.move(event)
           this.autoscaley = false;
+        }
           
-          await this.sleep(1);
-        }
+        await this.sleep(1);
       }
-      while(point.x > this.xAxis.points[this.xAxis.points.length - 2].value) {
-        for(var j = 0; j < 9; j++) {
-          var savex = this.xAxis.posSave;
-          this.xAxis.posSave = savex + 25;
-          await this.sleep(1);
-          this.autoscalex = true;
-          this.move(event)
-        }
-      this.autoscalex = false;
-      }
-      while(point.y > this.yAxis.points[this.yAxis.points.length - 2].value) {
-        for(var k = 0; k < 9; k++) {
-          var savey = this.yAxis.posSave;
-          this.yAxis.posSave = savey - 25;
-          await this.sleep(1);
-          this.autoscaley = true;
-          this.move(event)
-        }
-      this.autoscaley = false;
+      this.autoscalex = false; 
+
+      if(point.x > this.xAxis.points[this.xAxis.points.length - 2].value && point.y > this.yAxis.points[this.yAxis.points.length - 2].value) {
+        this.autoscale(event, "both", "right")
+      } else if(point.x > this.xAxis.points[this.xAxis.points.length - 2].value) {
+        this.autoscale(event, "x", "right")
+      } else if(point.y > this.yAxis.points[this.yAxis.points.length - 2].value) {
+        this.autoscale(event, "y", "right")
+      } else if(point.x < this.xAxis.points[this.xAxis.points.length - 2].value / 2 && point.y < this.yAxis.points[this.yAxis.points.length - 2].value / 2) {
+        this.autoscale(event, "both", "left")
+      } else if(point.x < this.xAxis.points[this.xAxis.points.length - 2].value / 2) {
+        this.autoscale(event, "x", "left")
+      } else if(point.y < this.yAxis.points[this.yAxis.points.length - 2].value / 2) {
+        this.autoscale(event, "y", "left")
       }
     },
     sleep: function(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
+    }
+  },
+  computed: {
+    lastValX: function() {
+      return this.xAxis.points[this.xAxis.points.length - 2].value
+    },
+    lastValY: function() {
+      return this.yAxis.points[this.yAxis.points.length - 2].value
+    },
+    inc: function () {
+      var point = this.values.values[this.values.values.length - 1]
+      return (point.x + point.y)/(this.lastValX + this.lastValY)
     }
   }
 }
