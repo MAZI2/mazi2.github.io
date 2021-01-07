@@ -57,7 +57,9 @@ export default {
           values: [],
           X: 'X-axis',
           Y: 'Y-axis',
-          toggle: false
+          toggle: false,
+
+          graphs: []
       }
   },
   created() {
@@ -68,13 +70,24 @@ export default {
     this.values[0].y = 6.5
   },
   methods: {
-    clickPlus: function() {
-      this.values[count] = new cell();
+    clickPlus: function(item) {
+      if(item == "point") {
+        this.values[count] = new cell();
+      } else {
+        this.graphs[countGraph] = new graph();
+      }
     },
-    clickMinus: function() {
-      if(count > 1) {
-        this.values.pop();
-        count--
+    clickMinus: function(item) {
+      if(item == "point") {
+        if(count > 1) {
+          this.values.pop();
+          count--
+        }
+      } else {
+        if(countGraph > 1) {
+          this.graphs.pop();
+          countGraph--
+        }
       }
     },
     connectPoints: function() {
