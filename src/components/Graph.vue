@@ -111,15 +111,27 @@ export default {
       }
     },
     move: function(e) {
-      if(this.dragging) {
+      if(this.dragging || this.values.autoscalex || this.values.autoscaley) {
+        console.log("wo")
         var cursor;
+        if(this.values.autoscalex) {
+          cursor = 0;
+          this.s = this.xAxis
+        } else if(this.values.autoscaley) {
+          cursor = 0;
+          this.s = this.yAxis
+        } else {
+          if(this.s == this.xAxis) {
+            cursor = e.clientX 
+          } else {
+            cursor = e.clientY  
+          }
+        }
        
-        if(this.s == this.xAxis) {
-          cursor = e.clientX //if selected X axis then use x poisition of pointer, otherwise y
+        if(this.s == this.xAxis) {  
           this.s.drag = (this.s.start - cursor)
           this.s.line = 500 - this.s.posSave - this.s.drag;
         } else {
-          cursor = e.clientY
           this.s.drag = -(this.s.start - cursor)
           this.s.line = 500 + this.s.posSave - this.s.drag;
         }
@@ -176,6 +188,7 @@ export default {
           }
         }
       }
+      this.status = this.yAxis.posSave
     },
     userPointX: function(value) { //translate X set by user to actual x position
       var x;

@@ -1,19 +1,9 @@
 <template>
   <div id="table">
-
-    <table id="graphs">
-      <tr v-for="graph in graphs" v-bind:key="graph">
-        <th><input @input="emit" v-model="graph.valueName"></th>      
-        <td class="input" @input="emit" ><input v-model="graph.input"></td>
-      </tr>
-    </table>
     <table id="buttons"> <!-- + and - buttons -->
       <td class="buttons">
-        <button @click="clickPlus">+</button>
+        <button @click="autoscale">Autoscale</button>
       </td>
-      <td class="buttons">
-        <button @click="clickMinus">−</button> 
-      </td>  
     </table>
 
     <hr>
@@ -37,10 +27,10 @@
 
     <table id="buttons"> <!-- + and - buttons -->
       <td class="buttons">
-        <button @click="clickPlus('point')">+</button>
+        <button @click="clickPlus">+</button>
       </td>
       <td class="buttons">
-        <button @click="clickMinus('point')">−</button> 
+        <button @click="clickMinus">−</button> 
       </td>  
     </table>
 
@@ -57,7 +47,6 @@
 
 <script>
 var count = 0;
-var countGraph = 0;
 
 function cell() {
   this.valueName = 'Point ' + (count + 1);
@@ -69,14 +58,6 @@ function cell() {
   count++
 }
 
-function graph() {
-  this.valueName = 'Graph ' + (countGraph + 1);
-  this.input = "";
-  this.pointNameVisibility = "hidden"
-  this.index = countGraph;
-  countGraph++
-}
-
 export default {
   name: "Table",
   data: function() {
@@ -84,39 +65,24 @@ export default {
           values: [],
           X: 'X-axis',
           Y: 'Y-axis',
-          toggle: false,
-
-          graphs: []
+          toggle: false
       }
   },
   created() {
     this.values[0] = new cell();
-    this.graphs[0] = new graph();
     setTimeout(this.emit, 10);
 
-    this.graphs[0].input = 0;
     this.values[0].x = 4.5
     this.values[0].y = 6.5
   },
   methods: {
-    clickPlus: function(item) {
-      if(item == "point") {
-        this.values[count] = new cell();
-      } else {
-        this.graphs[countGraph] = new graph();
-      }
+    clickPlus: function() {
+      this.values[count] = new cell();
     },
-    clickMinus: function(item) {
-      if(item == "point") {
-        if(count > 1) {
-          this.values.pop();
-          count--
-        }
-      } else {
-        if(countGraph > 1) {
-          this.graphs.pop();
-          countGraph--
-        }
+    clickMinus: function() {
+      if(count > 1) {
+        this.values.pop();
+        count--
       }
     },
     connectPoints: function() {
@@ -128,8 +94,11 @@ export default {
       }
     },
     emit: function() { //send collected values to graph
-      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, graphs: this.graphs})
+      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle})
     },
+    autoscale: function() {
+      this.$emit('autoscale')
+    }
   }
 }
 </script>
@@ -152,18 +121,6 @@ export default {
     width: 55px;
     text-align: center;
     border: none;
-}
-#graphs {  
-  border-collapse: collapse;
-}
-#graphs input {
-    font-size: 15px;
-    width: 60px;
-    text-align: center;
-    border: none;
-}
-.input {
-    width: 110px;
 }
 td {
   text-align: center;
