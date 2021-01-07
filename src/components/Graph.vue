@@ -78,6 +78,8 @@ export default {
       userPoints: [], //points on graph added by user
       s: "", // selected axis
       dragging: false,
+      autoscalex: false,
+      autoscaley: false,
       status: ""
     }
   },
@@ -111,21 +113,18 @@ export default {
       }
     },
     move: function(e) {
-      if(this.dragging || this.values.autoscalex || this.values.autoscaley) {
-        console.log("wo")
+      if(this.dragging || this.autoscalex || this.autoscaley) {
         var cursor;
-        if(this.values.autoscalex) {
+        if(this.autoscalex && !this.autoscaley) {
           cursor = 0;
           this.s = this.xAxis
-        } else if(this.values.autoscaley) {
+        } else if(this.autoscaley) {
           cursor = 0;
           this.s = this.yAxis
+        } else if(this.s == this.xAxis) {
+          cursor = e.clientX 
         } else {
-          if(this.s == this.xAxis) {
-            cursor = e.clientX 
-          } else {
-            cursor = e.clientY  
-          }
+          cursor = e.clientY  
         }
        
         if(this.s == this.xAxis) {  
@@ -148,6 +147,7 @@ export default {
           this.s.posSave = 0;
           this.s.drag = 0;
           this.s.start = cursor;
+
         } 
         for(var i = 0; i < this.s.pointsNum; i++) {
           if(this.s.pointsNum > this.s.points.length) {
@@ -247,6 +247,50 @@ export default {
         y = 0;
       }
       return y;
+    },
+    autoscale: async function(event) {
+      var point = this.values.values[this.values.values.length - 1]
+      
+      while(point.x > this.xAxis.points[this.xAxis.points.length - 2].value && point.y > this.yAxis.points[this.yAxis.points.length - 2].value) {
+        for(var i = 0; i < 9; i++) {
+          var saveX = this.xAxis.posSave;
+          var saveY = this.yAxis.posSave;
+
+          this.yAxis.posSave = saveY - 25;
+          this.xAxis.posSave = saveX + 25;
+          
+          this.autoscalex = true; 
+          this.move(event)
+          this.autoscaley = true;
+          this.move(event)
+          this.autoscaley = false;
+          
+          await this.sleep(1);
+        }
+      }
+      while(point.x > this.xAxis.points[this.xAxis.points.length - 2].value) {
+        for(var j = 0; j < 9; j++) {
+          var savex = this.xAxis.posSave;
+          this.xAxis.posSave = savex + 25;
+          await this.sleep(1);
+          this.autoscalex = true;
+          this.move(event)
+        }
+      this.autoscalex = false;
+      }
+      while(point.y > this.yAxis.points[this.yAxis.points.length - 2].value) {
+        for(var k = 0; k < 9; k++) {
+          var savey = this.yAxis.posSave;
+          this.yAxis.posSave = savey - 25;
+          await this.sleep(1);
+          this.autoscaley = true;
+          this.move(event)
+        }
+      this.autoscaley = false;
+      }
+    },
+    sleep: function(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
   }
 }
