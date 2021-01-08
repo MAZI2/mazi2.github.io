@@ -33,9 +33,12 @@
 
       <!-- User point hitbox-->
       <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red"/>
-    </svg>
-    
+
+      <svg id="svg">
+      </svg>
+    </svg>    
   </div>
+  
   {{status}}
 </template>
 
@@ -53,8 +56,7 @@ export default {
       this.yAxis.points.push({})
       this.yAxis.points[i].x = 500/this.yAxis.pointsNum * (i + 1)
       this.yAxis.points[i].value = i + 1;
-    }
-    this.move();
+    }   
   },
   data: function() {
     return {
@@ -115,6 +117,10 @@ export default {
     },
     move: function(e) {
       if(this.dragging || this.autoscalex || this.autoscaley) {
+        for(var g = 0; g < this.values.graphs.length; g++) {
+          this.draw(this.values.graphs[g].input)
+        }
+
         var cursor;
         if(this.autoscalex && !this.autoscaley) {
           cursor = 0;
@@ -298,6 +304,33 @@ export default {
     },
     sleep: function(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
+    },
+    draw: function(input) {
+        document.getElementById('svg').innerHTML = "";
+        var svg = document.getElementById('svg');
+        
+        var origin = { //origin of axes
+          x: 40, 
+          y: 490
+        };
+        if(input.includes("x")) {
+          var inputConvertedOne = input.replace("x", "(i - 1) / this.xAxis.points[0].x * this.xAxis.mult")
+          var inputConvertedTwo = input.replace("x", "i / this.xAxis.points[0].x * this.xAxis.mult")
+          console.log(inputConvertedOne + inputConvertedTwo)
+        }
+        for (var i = 0; i < 500; i++) {
+          var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          
+          line.setAttribute('x1', (i - 1)  + origin.x);
+          line.setAttribute('y1', -eval(inputConvertedOne) * this.yAxis.points[0].x / this.yAxis.mult + origin.y);
+
+          line.setAttribute('x2', i  + origin.x);
+          line.setAttribute('y2', -eval(inputConvertedTwo) * this.yAxis.points[0].x / this.yAxis.mult + origin.y);
+
+          line.setAttribute('style', "stroke:#CD3810;stroke-width:2");
+
+          svg.appendChild(line);
+        }
     }
   }
 }
