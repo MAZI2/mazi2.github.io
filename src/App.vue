@@ -23,6 +23,7 @@ export default {
   methods: {
     changevalue(value) {
       this.sent = value;
+      this.$refs.graf.update();
     },
     move: function(event) {
       this.$refs.graf.move(event)

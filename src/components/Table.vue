@@ -1,9 +1,18 @@
 <template>
   <div id="table">
+    <table id="values">
+      <tr v-for="graph in graphs" v-bind:key="graph">
+        <th><input class="graphsName" @input="emit" v-model="graph.valueName" placeholder="P0"></th>      
+        <td><input @input="emit" class="graphs" v-model="graph.input" placeholder="y = x"></td>
+      </tr>
+    </table>
     <table id="buttons"> <!-- + and - buttons -->
       <td class="buttons">
-        <button @click="autoscale">Autoscale</button>
+        <button @click="clickPlus">+</button>
       </td>
+      <td class="buttons">
+        <button @click="clickMinus">−</button> 
+      </td>  
     </table>
 
     <hr>
@@ -27,10 +36,10 @@
 
     <table id="buttons"> <!-- + and - buttons -->
       <td class="buttons">
-        <button @click="clickPlus">+</button>
+        <button @click="clickPlus('point')">+</button>
       </td>
       <td class="buttons">
-        <button @click="clickMinus">−</button> 
+        <button @click="clickMinus('point')">−</button> 
       </td>  
     </table>
 
@@ -42,11 +51,20 @@
       <input id="toggle" @click="connectPoints" @change="emit" type="checkbox" checked="true">
       <span class="slider"></span>
     </label>
+
+    <hr> <!-- separator -->
+
+    <table id="autoscale">
+      <td class="buttons">
+        <button @click="autoscale">Autoscale</button>
+      </td>
+    </table>
   </div>
 </template>
 
 <script>
 var count = 0;
+var countGraph = 0;
 
 function cell() {
   this.valueName = 'Point ' + (count + 1);
@@ -57,6 +75,13 @@ function cell() {
   this.index = count;
   count++
 }
+function graph() {
+  this.valueName = 'Graph ' + (countGraph + 1);
+  this.pointNameVisibility = "hidden"
+  this.input = "y = "
+  this.index = countGraph;
+  countGraph++
+}
 
 export default {
   name: "Table",
@@ -65,25 +90,40 @@ export default {
           values: [],
           X: 'X-axis',
           Y: 'Y-axis',
-          toggle: false
+          toggle: false,
+
+          graphs: []
       }
   },
   created() {
     this.values[0] = new cell();
-    setTimeout(this.emit, 10);
+    this.graphs[0] = new graph();
+    setTimeout(this.emit, 1);
 
     this.values[0].x = 4.5
     this.values[0].y = 6.5
   },
   methods: {
-    clickPlus: function() {
-      this.values[count] = new cell();  
-      this.order();    
+    clickPlus: function(value) {
+      if(value == "point") {
+        this.values[count] = new cell();  
+        this.order();
+      } else {
+        this.graphs[countGraph] = new graph();
+      }    
     },
-    clickMinus: function() {
-      if(count > 1) {
-        this.values.pop();
-        count--
+    clickMinus: function(value) {
+      if(value == "point") {
+        if(count > 1) {
+          this.values.pop();
+          count--
+        }
+      } else {
+        if(countGraph > 1) {
+          this.graphs.pop();
+          countGraph--
+          this.emit()
+        }
       }
     },
     connectPoints: function() {
@@ -95,7 +135,7 @@ export default {
       }
     },
     emit: function() { //send collected values to graph
-      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle})
+      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, graphs: this.graphs})
     },
     autoscale: function() {
       this.$emit('autoscale')
@@ -130,10 +170,16 @@ export default {
   border: none;
 }
 #values input {
-    font-size: 15px;
-    width: 55px;
-    text-align: center;
-    border: none;
+  font-size: 15px;
+  width: 55px;
+  text-align: center;
+  border: none;
+}
+#values .graphs {
+  width: 108px;
+}
+#values .graphsName {
+  width: 60px;
 }
 td {
   text-align: center;
@@ -151,6 +197,10 @@ hr {
 }
 #buttons {
   margin-right: 0px;
+  margin-left: auto;
+}
+#autoscale {
+  margin-right: -2px;
   margin-left: auto;
 }
 .buttons {
@@ -221,6 +271,7 @@ input:checked + .slider:before {
 #graphLabel {
   margin-top: 2px;
   float: left;
+  padding-bottom: 0px
 }
 #pointsLabel {
   font-size: 17px;
