@@ -1,6 +1,6 @@
 <template>
-<div id="app" @mousedown="this.$refs.graf.startDrag($event)" @mousemove="this.$refs.graf.move($event)" @mouseup="this.$refs.graf.stopDrag($event)">
-  <Table @newvalue="changevalue($event)"></Table>
+<div id="app" @mousedown="this.$refs.graf.startDrag($event)" @mousemove="move($event)" @mouseup="this.$refs.graf.stopDrag($event)">
+  <Table @newvalue="changevalue($event)" @autoscale="this.$refs.graf.autoscale($event)"></Table>
   <Graph ref="graf" :values="sent"></Graph>
 </div>
 </template>
@@ -23,7 +23,11 @@ export default {
   methods: {
     changevalue(value) {
       this.sent = value;
-    }
+    },
+    move: function(event) {
+      this.$refs.graf.move(event)
+    },
+    
   }
 }
 </script>

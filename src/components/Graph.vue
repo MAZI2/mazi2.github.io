@@ -28,13 +28,15 @@
       <!-- User points -->
       <circle class="userPoints" v-for="userPoint in values.values" v-bind:key="userPoint"  :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="3" />
       <svg v-if="values.toggle == false">
-        <line class="graph" v-for="userPoint in values.values" v-bind:key="userPoint.index" :x1="graphX(userPoint) + 40" :y1="490 - graphY(userPoint)" :x2="userPointX(userPoint) + 40" :y2="490 - userPointY(userPoint)" />
+        <line class="graph" v-for="userPoint in values.values" v-bind:key="userPoint" :x1="graphX(userPoint) + 40" :y1="490 - graphY(userPoint)" :x2="userPointX(userPoint) + 40" :y2="490 - userPointY(userPoint)" />
       </svg>
 
       <!-- User point hitbox-->
       <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red"/>
     </svg>
+    
   </div>
+  {{status}}
 </template>
 
 <script>
@@ -76,7 +78,10 @@ export default {
       },
       userPoints: [], //points on graph added by user
       s: "", // selected axis
-      dragging: false
+      dragging: false,
+      autoscalex: false,
+      autoscaley: false,
+      status: ""
     }
   },
   props: {
@@ -109,15 +114,24 @@ export default {
       }
     },
     move: function(e) {
-      if(this.dragging) {
+      if(this.dragging || this.autoscalex || this.autoscaley) {
         var cursor;
+        if(this.autoscalex && !this.autoscaley) {
+          cursor = 0;
+          this.s = this.xAxis
+        } else if(this.autoscaley) {
+          cursor = 0;
+          this.s = this.yAxis
+        } else if(this.s == this.xAxis) {
+          cursor = e.clientX 
+        } else {
+          cursor = e.clientY  
+        }
        
-        if(this.s == this.xAxis) {
-          cursor = e.clientX //if selected X axis then use x poisition of pointer, otherwise y
+        if(this.s == this.xAxis) {  
           this.s.drag = (this.s.start - cursor)
           this.s.line = 500 - this.s.posSave - this.s.drag;
         } else {
-          cursor = e.clientY
           this.s.drag = -(this.s.start - cursor)
           this.s.line = 500 + this.s.posSave - this.s.drag;
         }
@@ -134,6 +148,7 @@ export default {
           this.s.posSave = 0;
           this.s.drag = 0;
           this.s.start = cursor;
+
         } 
         for(var i = 0; i < this.s.pointsNum; i++) {
           if(this.s.pointsNum > this.s.points.length) {
@@ -232,6 +247,57 @@ export default {
         y = 0;
       }
       return y;
+    },
+    autoscale: async function(event, callback, direction) {
+      var pointForX = this.values.values[this.values.values.length - 1]
+      var pointForY = this.values.values[0];
+
+      for(var j = 1; j < this.values.values.length; j++) {
+        if(parseFloat(this.values.values[j].y) > parseFloat(pointForY.y)) {
+          pointForY = this.values.values[j]
+        }      
+      }
+      
+      for(var i = 0; i < 9; i++) {
+        var saveX = this.xAxis.posSave;
+        var saveY = this.yAxis.posSave;
+        
+        if(direction == "right") {
+          this.yAxis.posSave = saveY - 25;
+          this.xAxis.posSave = saveX + 25;
+        } else if(direction == "left") {
+          this.yAxis.posSave = saveY + 25;
+          this.xAxis.posSave = saveX - 25;
+        }
+        if(callback == "both" || callback == "x") {
+          this.autoscalex = true; 
+          this.move(event)
+        }
+        if(callback == "both" || callback == "y") {
+          this.autoscaley = true;
+          this.move(event)
+          this.autoscaley = false;
+        } 
+        await this.sleep(1);
+      }
+      this.autoscalex = false; 
+
+      if(pointForX.x > this.xAxis.points[this.xAxis.points.length - 2].value && pointForY.y > this.yAxis.points[this.yAxis.points.length - 2].value) {
+        this.autoscale(event, "both", "right")
+      } else if(pointForX.x > this.xAxis.points[this.xAxis.points.length - 2].value) {
+        this.autoscale(event, "x", "right")
+      } else if(pointForY.y > this.yAxis.points[this.yAxis.points.length - 2].value) {
+        this.autoscale(event, "y", "right")
+      } else if(pointForX.x < this.xAxis.points[this.xAxis.points.length - 2].value / 2 && pointForY.y < this.yAxis.points[this.yAxis.points.length - 2].value / 2) {
+        this.autoscale(event, "both", "left")
+      } else if(pointForX.x < this.xAxis.points[this.xAxis.points.length - 2].value / 2) {
+        this.autoscale(event, "x", "left")
+      } else if(pointForY.y < this.yAxis.points[this.yAxis.points.length - 2].value / 2) {
+        this.autoscale(event, "y", "left")
+      }
+    },
+    sleep: function(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
   }
 }

@@ -1,5 +1,13 @@
 <template>
   <div id="table">
+    <table id="buttons"> <!-- + and - buttons -->
+      <td class="buttons">
+        <button @click="autoscale">Autoscale</button>
+      </td>
+    </table>
+
+    <hr>
+
     <p id="pointsLabel">Points</p>
 
     <hr> <!-- separator -->
@@ -10,10 +18,10 @@
         <th><input @input="emit" v-model="X" placeholder="X-axis"></th>
         <th><input @input="emit" v-model="Y" placeholder="Y-axis"></th>
       </tr>
-      <tr v-for="value in values" v-bind:key="value">
+      <tr v-for="value in values" v-bind:key="value.index">
         <th><input @input="emit" v-model="value.valueName" placeholder="P0"></th>      
-        <td @input="emit" ><input v-model="value.x" placeholder="0"></td>
-        <td @input="emit" ><input v-model="value.y" placeholder="0"></td>
+        <td @input="order" ><input v-model="value.x" placeholder="0"></td>
+        <td><input v-model="value.y" placeholder="0"></td>
       </tr>
     </table>
 
@@ -69,7 +77,8 @@ export default {
   },
   methods: {
     clickPlus: function() {
-      this.values[count] = new cell();
+      this.values[count] = new cell();  
+      this.order();    
     },
     clickMinus: function() {
       if(count > 1) {
@@ -88,6 +97,21 @@ export default {
     emit: function() { //send collected values to graph
       this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle})
     },
+    autoscale: function() {
+      this.$emit('autoscale')
+    },
+    order: function() {
+      for(var i = 0; i < this.values.length; i++) {
+        if(i != this.values.length - 1 && parseFloat(this.values[i].x) > parseFloat(this.values[i + 1].x)) {
+          var prev = this.values[i]
+          this.values[i] = this.values[i + 1]
+          this.values[i + 1] = prev;
+          this.order();
+        }
+        this.values[i].index = this.values.indexOf(this.values[i])
+        this.values[i].valueName = "Point " + (this.values[i].index + 1)
+      }
+    }
   }
 }
 </script>
