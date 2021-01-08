@@ -34,6 +34,6 @@ Add or remove expression and set __y value__ (_"y = ..." / y=..._) _(Example: y 
 Set x and y-axis __name__ and change their __scale__ with click and drag.
 
 ### Features
-Connect points.
-Autoscale the axis.
+Connect points.  
+Autoscale the axis.  
 Show point name and exact x, y-axis value on mouse-over or toggle with click on the point. 
