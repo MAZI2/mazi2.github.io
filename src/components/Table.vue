@@ -3,7 +3,7 @@
     <table id="values">
       <tr v-for="graph in graphs" v-bind:key="graph">
         <th><input class="graphsName" @input="emit" v-model="graph.valueName" placeholder="P0"></th>      
-        <td><input class="graphs" v-model="graph.input" placeholder="function"></td>
+        <td><input @input="emit" class="graphs" v-model="graph.input" placeholder="y = x"></td>
       </tr>
     </table>
     <table id="buttons"> <!-- + and - buttons -->
@@ -78,7 +78,8 @@ function cell() {
 function graph() {
   this.valueName = 'Graph ' + (countGraph + 1);
   this.pointNameVisibility = "hidden"
-  this.input = ""
+  this.input = "y = "
+  this.index = countGraph;
   countGraph++
 }
 
@@ -97,7 +98,7 @@ export default {
   created() {
     this.values[0] = new cell();
     this.graphs[0] = new graph();
-    setTimeout(this.emit, 10);
+    setTimeout(this.emit, 1);
 
     this.values[0].x = 4.5
     this.values[0].y = 6.5
@@ -121,6 +122,7 @@ export default {
         if(countGraph > 1) {
           this.graphs.pop();
           countGraph--
+          this.emit()
         }
       }
     },
