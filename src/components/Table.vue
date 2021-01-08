@@ -290,7 +290,7 @@ input:checked + .slider:before {
   margin: 0px;
   margin-bottom: -6px;
 }
-#graphLabel, #pointsLabel #customGraphLabel{
+#graphLabel, #pointsLabel, #customGraphLabel{
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
