@@ -27,9 +27,13 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### New points
 Add or remove point and set __x__, __y__ and __name__.
 
+### New expression
+Add or remove expression and set __y value__ (_"y = ..." / y=..._) _(Example: y = (3 * x) + 2)_
+
 ### Configure axis
 Set x and y-axis __name__ and change their __scale__ with click and drag.
 
 ### Features
 Connect points.
+Autoscale the axis.
 Show point name and exact x, y-axis value on mouse-over or toggle with click on the point. 
