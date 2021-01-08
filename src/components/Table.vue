@@ -1,5 +1,9 @@
 <template>
   <div id="table">
+    <p id="customGraphLabel">Expressions</p>
+
+    <hr> <!-- separator -->
+
     <table id="values">
       <tr v-for="graph in graphs" v-bind:key="graph">
         <th><input class="graphsName" @input="emit" v-model="graph.valueName" placeholder="P0"></th>      
@@ -14,8 +18,6 @@
         <button @click="clickMinus">−</button> 
       </td>  
     </table>
-
-    <hr>
 
     <p id="pointsLabel">Points</p>
 
@@ -204,6 +206,7 @@ hr {
 #autoscale {
   margin-right: -2px;
   margin-left: auto;
+  margin-top: -3px;
 }
 .buttons {
   border: none;
@@ -227,7 +230,7 @@ hr {
 }
 .switch {
   margin-top: 0px;
-  margin-left: 23px;
+  margin-left: 21px;
   position: relative;
   display: inline-block;
   width: 40px;
@@ -271,6 +274,7 @@ input:checked + .slider:before {
   transform: translateX(19px);
 }
 #graphLabel {
+  font-size: 17px;
   margin-top: 2px;
   float: left;
   padding-bottom: 0px
@@ -278,9 +282,15 @@ input:checked + .slider:before {
 #pointsLabel {
   font-size: 17px;
   margin: 0px;
+  margin-top: 20px;
   margin-bottom: -6px;
 }
-#graphLabel, #pointsLabel {
+#customGraphLabel{
+  font-size: 17px;
+  margin: 0px;
+  margin-bottom: -6px;
+}
+#graphLabel, #pointsLabel #customGraphLabel{
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
