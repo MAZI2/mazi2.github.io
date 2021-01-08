@@ -28,14 +28,15 @@
       <!-- User points -->
       <circle class="userPoints" v-for="userPoint in values.values" v-bind:key="userPoint"  :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="3" />
       <svg v-if="values.toggle == false">
-        <line class="graph" v-for="userPoint in values.values" v-bind:key="userPoint.index" :x1="graphX(userPoint) + 40" :y1="490 - graphY(userPoint)" :x2="userPointX(userPoint) + 40" :y2="490 - userPointY(userPoint)" />
+        <line class="graph" v-for="userPoint in values.values" v-bind:key="userPoint" :x1="graphX(userPoint) + 40" :y1="490 - graphY(userPoint)" :x2="userPointX(userPoint) + 40" :y2="490 - userPointY(userPoint)" />
       </svg>
 
       <!-- User point hitbox-->
       <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red"/>
     </svg>
-    {{status}}
+    
   </div>
+  {{status}}
 </template>
 
 <script>
@@ -254,12 +255,9 @@ export default {
       for(var j = 1; j < this.values.values.length; j++) {
         if(parseFloat(this.values.values[j].y) > parseFloat(pointForY.y)) {
           pointForY = this.values.values[j]
-        } 
-
-        
+        }      
       }
-      console.log(pointForY.y)
-        
+      
       for(var i = 0; i < 9; i++) {
         var saveX = this.xAxis.posSave;
         var saveY = this.yAxis.posSave;
@@ -279,8 +277,7 @@ export default {
           this.autoscaley = true;
           this.move(event)
           this.autoscaley = false;
-        }
-          
+        } 
         await this.sleep(1);
       }
       this.autoscalex = false; 
