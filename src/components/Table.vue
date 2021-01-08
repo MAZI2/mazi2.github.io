@@ -176,7 +176,9 @@ export default {
   border: none;
 }
 #values .graphs {
-  width: 108px;
+  width: 98px;
+  margin-left: 10px;
+  text-align: left;
 }
 #values .graphsName {
   width: 60px;

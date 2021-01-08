@@ -316,15 +316,23 @@ export default {
       var input = this.values.graphs[point].input
       
       
-      if(input.includes("x")) {
+      if(input.includes("x") || /\d/g.test(input)) {
         var inputShort;
+        var inputConvertedOne;
+        var inputConvertedTwo;
 
-        if(input.includes("y = " || "y=")) {
-          inputShort = input.replace("y = ", "") || input.replace("y=", "")
+        if(input.includes("y = ")) {
+          inputShort = input.replace("y = ", "");
+        } else if(input.includes("y=")) {
+          inputShort = input.replace("y=", "")
         }
-        var inputConvertedOne = inputShort.replace("x", "(i - 1) / this.xAxis.points[0].x * this.xAxis.mult")
-        var inputConvertedTwo = inputShort.replace("x", "i / this.xAxis.points[0].x * this.xAxis.mult")
-      
+        
+        if(input.includes("x")) {
+          inputConvertedOne = inputShort.replace("x", "(i - 1) / this.xAxis.points[0].x * this.xAxis.mult")
+          inputConvertedTwo = inputShort.replace("x", "i / this.xAxis.points[0].x * this.xAxis.mult")
+        } else if (/\d/g.test(input)) {
+          inputConvertedOne = inputConvertedTwo = parseFloat(inputShort)
+        }
         for (var i = 1; i < 500; i++) {
           var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
           
