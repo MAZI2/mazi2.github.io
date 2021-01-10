@@ -6,7 +6,9 @@ Add or remove point and set __x__, __y__ and __name__.
 
 ### New expression
 Add or remove expression and set __y value__ (_"y = ..." / y=..._) (Example: _y = (3 * x) + 2_ )  
-Also supports javascript ```Math.``` so to use them in expression use Math. (Example: _y = 3 * **Math.cos**(x + 5)_ )
+Also supports javascript ```Math.``` so to use them in expression use Math. (Example: _y = 3 * **Math.cos**(x + 5)_ )  
+Set __color__ of expression  
+__Show/hide__ expression with click on expression name.
 
 ### Configure axis
 Set x and y-axis __name__ and change their __scale__ with click and drag.
