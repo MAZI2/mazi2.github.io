@@ -10,16 +10,12 @@
         <th class="graphName" :id="'rowGraph' + graph.index" @click="changeVisibility(graph)">
           <input @input="emit" v-model="graph.valueName" placeholder="P0">
             
-          <div class="dropdown-content">  
-            <tr><td>             
-              <span class="dot" style="background-color:#cc5534;" @click="changeGraphColor(graph, '#cc5534')"></span>      
-            </td></tr>
-            <tr><td>    
-              <span class="dot" style="background-color:#7396ff;" @click="changeGraphColor(graph, '#7396ff')"></span>
-            </td></tr>
-            <tr><td> 
-              <span class="dot" style="background-color:#90E580;" @click="changeGraphColor(graph, '#90E580')"></span>
-            </td></tr>       
+          <div id="dropdown-content">  
+            <tr v-for="color of colors" v-bind:key="color">
+              <td>
+                <span class="dot" :style="'background-color:' + color + ';'" @click="changeGraphColor(graph, color)"></span>
+              </td>
+            </tr>   
           </div>
        
         </th>      
@@ -110,17 +106,22 @@ export default {
           Y: 'Y-axis',
           toggle: false,
 
-          graphs: []
+          graphs: [],
+          colors: ['#cc5534', '#7396ff', '#90E580', '#FFCF00']
       }
   },
   created() {
     this.values[0] = new cell();
     this.graphs[0] = new graph();
+
     this.graphs[0].color = "#cc5534";
-    setTimeout(this.emit, 1);
 
     this.values[0].x = 4.5
     this.values[0].y = 6.5
+
+   
+    setTimeout(this.emit, 1);
+    setTimeout(this.createColorSelect, 1);
   },
   methods: {
     clickPlus: function(value) {
@@ -363,7 +364,7 @@ input:checked + .slider:before {
 
 
 
-.dropdown-content {
+#dropdown-content {
   margin-top: -8px;
   display: none;
   position: absolute;
@@ -373,9 +374,9 @@ input:checked + .slider:before {
 }
 
 
-.dropdown-content td:hover {background-color: #f1f1f1;}
+#dropdown-content td:hover {background-color: #f1f1f1;}
 
-.graphName:hover .dropdown-content {
+.graphName:hover #dropdown-content {
   display: inline;
 }
 .dot {
