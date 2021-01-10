@@ -12,8 +12,8 @@
             
           <div id="dropdown-content">  
             <tr v-for="color of colors" v-bind:key="color">
-              <td>
-                <span class="dot" :style="'background-color:' + color + ';'" @click="changeGraphColor(graph, color)"></span>
+              <td @click="changeGraphColor(graph, color)">
+                <span class="dot" :style="'background-color:' + color + ';'"></span>
               </td>
             </tr>   
           </div>
