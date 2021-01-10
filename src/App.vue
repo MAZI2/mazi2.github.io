@@ -24,6 +24,11 @@ export default {
     changevalue(value) {
       this.sent = value;
       this.$refs.graf.update();
+      setTimeout(() => {
+        for(var i = 0; i < this.sent.graphs.length; i++) {
+          this.$refs.graf.draw(i);
+        }
+      }, 1)
     },
     move: function(event) {
       this.$refs.graf.move(event)

@@ -335,6 +335,8 @@ export default {
         }
         for (var i = 1; i < 500; i++) {
           var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          var color = this.values.graphs[point].color
+          var style = "stroke:" + color + ";stroke-width:2"
           
           try {
             line.setAttribute('x1', (i - 1)  + origin.x);
@@ -350,7 +352,7 @@ export default {
             line.setAttribute('y2', 0);
           }
 
-          line.setAttribute('style', "stroke:#CD3810;stroke-width:2");
+          line.setAttribute('style', style);
 
           node.appendChild(line);
           node.setAttribute('id', this.values.graphs[point].index)

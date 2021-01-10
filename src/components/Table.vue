@@ -6,7 +6,23 @@
 
     <table id="values">
       <tr v-for="graph in graphs" v-bind:key="graph">
-        <th><input class="graphsName" @input="emit" v-model="graph.valueName" placeholder="P0"></th>      
+        
+        <th class="graphName" :id="'rowGraph' + graph.index">
+          <input @input="emit" v-model="graph.valueName" placeholder="P0">
+            
+          <div class="dropdown-content">  
+            <tr><td>             
+              <span class="dot" style="background-color:#cc5534;" @click="changeGraphColor(graph, '#cc5534')"></span>      
+            </td></tr>
+            <tr><td>    
+              <span class="dot" style="background-color:#7396ff;" @click="changeGraphColor(graph, '#7396ff')"></span>
+            </td></tr>
+            <tr><td> 
+              <span class="dot" style="background-color:#90E580;" @click="changeGraphColor(graph, '#90E580')"></span>
+            </td></tr>       
+          </div>
+       
+        </th>      
         <td><input @input="emit" class="graphs" v-model="graph.input" placeholder="y = x"></td>
       </tr>
     </table>
@@ -25,14 +41,14 @@
     
     <table id="values">
       <tr>
-        <th class="emptyCell"></th>
-        <th><input @input="emit" v-model="X" placeholder="X-axis"></th>
-        <th><input @input="emit" v-model="Y" placeholder="Y-axis"></th>
+        <td class="emptyCell"></td>
+        <td><input @input="emit" v-model="X" placeholder="X-axis"></td>
+        <td><input @input="emit" v-model="Y" placeholder="Y-axis"></td>
       </tr>
-      <tr v-for="value in values" v-bind:key="value.index">
-        <th><input @input="emit" v-model="value.valueName" placeholder="P0"></th>      
-        <td @input="order" ><input v-model="value.x" placeholder="0"></td>
-        <td><input v-model="value.y" placeholder="0"></td>
+      <tr v-for="value in values" v-bind:key="value.index" @click="highlight(value)">
+        <th :id="'row' + value.index"><input @blur="clear" @input="emit" v-model="value.valueName" placeholder="Point 1"></th>      
+        <td><input @blur="order" v-model="value.x" placeholder="0"></td>
+        <td><input @blur="clear" v-model="value.y" placeholder="0"></td>
       </tr>
     </table>
 
@@ -78,9 +94,9 @@ function cell() {
   count++
 }
 function graph() {
-  this.valueName = 'Graph ' + (countGraph + 1);
+  this.valueName = 'Expr ' + (countGraph + 1);
   this.pointNameVisibility = "hidden"
-  this.input = "y = "
+  this.input = ""
   this.index = countGraph;
   countGraph++
 }
@@ -100,6 +116,7 @@ export default {
   created() {
     this.values[0] = new cell();
     this.graphs[0] = new graph();
+    this.graphs[0].color = "#cc5534";
     setTimeout(this.emit, 1);
 
     this.values[0].x = 4.5
@@ -112,7 +129,9 @@ export default {
         this.order();
       } else {
         this.graphs[countGraph] = new graph();
-      }    
+        this.graphs[countGraph - 1].color = "#cc5534";
+      }
+      this.clear();    
     },
     clickMinus: function(value) {
       if(value == "point") {
@@ -153,6 +172,25 @@ export default {
         this.values[i].index = this.values.indexOf(this.values[i])
         this.values[i].valueName = "Point " + (this.values[i].index + 1)
       }
+      this.clear();
+    },
+    highlight: function(value) {
+      this.clear();
+      setTimeout(() => {
+        document.getElementById('row' + value.index).style.borderLeft = "2px solid #CD3810";
+      }, 2)
+    },
+    clear: function() {
+      setTimeout(() => {
+        for(var i = 0; i < this.values.length; i++) {  
+          document.getElementById('row' + i).style.borderLeft = "";
+        }
+      }, 1)
+    },
+    changeGraphColor: function(value, color) {
+      document.getElementById('rowGraph' + value.index).style.borderLeft = "2px solid " + color;
+      value.color = color;
+      this.emit();
     }
   }
 }
@@ -167,6 +205,8 @@ export default {
 }
 #values {  
   border-collapse: collapse;
+  margin-right: 0px;
+  margin-left: auto;
 }
 #values .emptyCell {
   border: none;
@@ -176,37 +216,46 @@ export default {
   width: 55px;
   text-align: center;
   border: none;
+  float: right;
+  clear: both;
 }
-#values .graphs {
-  width: 98px;
-  margin-left: 10px;
-  text-align: left;
-}
-#values .graphsName {
-  width: 60px;
-}
-td {
+
+td, th{
   text-align: center;
   border: 1px solid #ddd;
   padding: 0px; 
+  height: 35px;
+  width: 60px;
+  box-sizing: border-box;
+}
+#values .graphs {
+  box-sizing: border-box;
+  width: 110px;
+  text-align: left;
+  margin-left: 7px; 
 }
 th {
-  border: 1px solid #ddd;
-  height: 35px;
-  padding: 0px
+  -webkit-transition: all 0.1s ease-in-out;
+  transition: all 0.1s ease-in-out;
 }
+th:hover {
+  box-sizing: border-box;
+  border-left: 2px solid #cc5534;
+  -webkit-transition: all 0.1s ease-in-out;
+  transition: all 0.1s ease-in-out;
+}
+#values .graphName {
+  border-left: 2px solid #cc5534;
+}
+
 hr {
   border: none;
   border-top: 1px solid #ddd;
 }
+
 #buttons {
   margin-right: 0px;
   margin-left: auto;
-}
-#autoscale {
-  margin-right: -2px;
-  margin-left: auto;
-  margin-top: -3px;
 }
 .buttons {
   border: none;
@@ -228,6 +277,7 @@ hr {
 .buttons button:hover {
   background-color: #f0f0f0;
 }
+
 .switch {
   margin-top: 0px;
   margin-left: 21px;
@@ -273,6 +323,12 @@ input:checked + .slider:before {
   -ms-transform: translateX(19px);
   transform: translateX(19px);
 }
+
+#autoscale {
+  margin-right: -2px;
+  margin-left: auto;
+  margin-top: -3px;
+}
 #graphLabel {
   font-size: 17px;
   margin-top: 2px;
@@ -296,4 +352,32 @@ input:checked + .slider:before {
   -ms-user-select: none;
   user-select: none;
 }
+
+
+
+.dropdown-content {
+  margin-top: -8px;
+  display: none;
+  position: absolute;
+  left: 61px;
+  width: 40px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+
+.dropdown-content td:hover {background-color: #f1f1f1;}
+
+.graphName:hover .dropdown-content {
+  display: inline;
+}
+.dot {
+  margin: auto;
+  margin-top: 4px;
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+  display: block;
+}
+
+
 </style>
