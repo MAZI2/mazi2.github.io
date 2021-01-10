@@ -337,6 +337,7 @@ export default {
           var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
           var color = this.values.graphs[point].color
           var style = "stroke:" + color + ";stroke-width:2"
+          var visibility = this.values.graphs[point].visibility
           
           try {
             line.setAttribute('x1', (i - 1)  + origin.x);
@@ -353,6 +354,7 @@ export default {
           }
 
           line.setAttribute('style', style);
+          line.setAttribute('visibility', visibility);
 
           node.appendChild(line);
           node.setAttribute('id', this.values.graphs[point].index)

@@ -7,7 +7,7 @@
     <table id="values">
       <tr v-for="graph in graphs" v-bind:key="graph">
         
-        <th class="graphName" :id="'rowGraph' + graph.index">
+        <th class="graphName" :id="'rowGraph' + graph.index" @click="changeVisibility(graph)">
           <input @input="emit" v-model="graph.valueName" placeholder="P0">
             
           <div class="dropdown-content">  
@@ -95,7 +95,7 @@ function cell() {
 }
 function graph() {
   this.valueName = 'Expr ' + (countGraph + 1);
-  this.pointNameVisibility = "hidden"
+  this.visibility = "visible"
   this.input = ""
   this.index = countGraph;
   countGraph++
@@ -190,6 +190,14 @@ export default {
     changeGraphColor: function(value, color) {
       document.getElementById('rowGraph' + value.index).style.borderLeft = "2px solid " + color;
       value.color = color;
+      this.changeVisibility(value)
+    },
+    changeVisibility(value) {
+      if(value.visibility == "visible") {
+        value.visibility = "hidden"
+      } else {
+        value.visibility = "visible"
+      }
       this.emit();
     }
   }
