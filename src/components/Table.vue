@@ -241,11 +241,18 @@ export default {
       } 
     },
     bindExpr: function(graph, value) {
+      var state = document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor
+
       for(var i = 0; i < this.graphs.length; i++) {
         document.getElementById(value.index + 'Expr' + i).style.backgroundColor = "white";
       }
-      document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor = " #f1f1f1";
-      value.expr = graph;
+      if(state == "white") {
+        document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor = "#f1f1f1";
+        value.expr = graph;
+      } else {
+        document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor = "white"
+        value.expr = undefined;
+      }
     },
     pointExpr: function(value) {
         if(value.expr != undefined) {
@@ -462,6 +469,7 @@ input:checked + .slider:before {
   margin-top: 9px;
   height: 24px;
   display: block;
+  font-weight: lighter;
 }
 
 

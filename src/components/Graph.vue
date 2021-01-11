@@ -10,6 +10,8 @@
       <line class="grid" v-for="point in xAxis.points" v-bind:key="point" :x1="point.x + 40" y1="0" :x2="point.x + 40" y2="490" /> <!-- vertical grid lines -->
       <line class="grid" v-for="point in yAxis.points" v-bind:key="point" x1="40" :y1="490 -point.x" x2="530" :y2="490 - point.x" /> <!-- horizontal grid lines -->
 
+       
+      
       <text v-for="point in xAxis.points" v-bind:key="point" :x="point.x + 40" y="509">{{point.value}}</text> <!-- numbers below marks on X axis -->
       <text v-for="point in yAxis.points" v-bind:key="point" x="26" :y="490 - point.x + 5">{{point.value}}</text> <!-- numbers beside marks on Y axis -->
       
@@ -20,8 +22,8 @@
       <line class="details" v-for="userPoint in values.values" v-bind:key="userPoint" :x1="userPointX(userPoint) + 40" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" y2="507" :visibility="userPoint.pointNameVisibility" />
       <text class="detailsText" v-for="userPoint in values.values" v-bind:key="userPoint" :x="userPointX(userPoint) + 40" y="522" :visibility="userPoint.pointNameVisibility">{{userPoint.x}}</text>
       <!-- User point details for Y-axis -->
-      <line class="details" v-for="userPoint in values.values" v-bind:key="userPoint" x1="26" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" :y2="490 - userPointY(userPoint)" :visibility="userPoint.pointNameVisibility" />
-      <text class="detailsText" v-for="userPoint in values.values" v-bind:key="userPoint" x="12" :y="490 - userPointY(userPoint) + 4" :visibility="userPoint.pointNameVisibility">{{userPoint.y}}</text>
+      <line class="details" v-for="userPoint in values.values" v-bind:key="userPoint" x1="30" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" :y2="490 - userPointY(userPoint)" :visibility="userPoint.pointNameVisibility" />
+      <text class="detailsText" v-for="userPoint in values.values" v-bind:key="userPoint" x="15" :y="490 - userPointY(userPoint) + 4" :visibility="userPoint.pointNameVisibility">{{userPoint.y}}</text>
 
       <text v-for="userPoint in values.values" v-bind:key="userPoint" :x="userPointX(userPoint) + 40" :y="490 - userPointY(userPoint) - 10" :visibility="userPoint.pointNameVisibility">{{userPoint.valueName}}</text>
 
@@ -36,7 +38,8 @@
       <!-- User point hitbox-->
       <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red"/>
 
-    </svg>    
+      
+    </svg>   
   </div>
   
   {{status}}
@@ -52,11 +55,11 @@ export default {
     for(var i = 0; i < 11; i++) {
       this.xAxis.points.push({})
       this.xAxis.points[i].x = 500/this.xAxis.pointsNum * (i + 1)
-      this.xAxis.points[i].value = i + 1;
+      this.xAxis.points[i].value = (i + 1) * this.step;
 
       this.yAxis.points.push({})
       this.yAxis.points[i].x = 500/this.yAxis.pointsNum * (i + 1)
-      this.yAxis.points[i].value = i + 1;
+      this.yAxis.points[i].value = (i + 1) * this.step;
     }   
   },
   data: function() {
@@ -88,6 +91,8 @@ export default {
       args: [],
       newDetail: false,
       detailLive: {x: 0, y: 0},
+      step: 1,
+
       status: ""
     }
   },
@@ -190,7 +195,7 @@ export default {
 
         //set point numbers on axis 
         for(var c = 0; c < this.s.points.length; c++) {
-          var val = (c + 1) * this.s.mult;
+          var val = (c + 1) * this.s.mult * this.step;
           if(val < 1 && val.toString().split(".")[1].length > 2) {
             this.s.points[c].value = val.toFixed(2);
           } else {
@@ -397,7 +402,7 @@ export default {
       for(var a = 0; a < this.values.graphs.length; a++) {
         var y = Math.floor(eval(this.args[a]) * this.yAxis.points[0].x / this.yAxis.mult)
 
-        if((490 - e.clientY + $("svg").offset().top) < y + 10 && (490 - e.clientY + $("svg").offset().top) > y - 10) {
+        if((490 - e.clientY + $("svg").offset().top) < y + 3 && (490 - e.clientY + $("svg").offset().top) > y - 3) {
           this.detailLive.visibility = "visible";
           this.detailLive.x = i;
           this.detailLive.y = y;
@@ -437,10 +442,7 @@ line {
 text {
   text-anchor: middle; 
   font-size: 12px;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+
 }
 .userPoints {
   fill: #CD3810;
