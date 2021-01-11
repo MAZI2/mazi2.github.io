@@ -10,10 +10,10 @@
       <line class="grid" v-for="point in xAxis.points" v-bind:key="point" :x1="point.x + 40" y1="0" :x2="point.x + 40" y2="490" /> <!-- vertical grid lines -->
       <line class="grid" v-for="point in yAxis.points" v-bind:key="point" x1="40" :y1="490 -point.x" x2="530" :y2="490 - point.x" /> <!-- horizontal grid lines -->
 
-       
       
-      <text v-for="point in xAxis.points" v-bind:key="point" :x="point.x + 40" y="509">{{point.value}}</text> <!-- numbers below marks on X axis -->
-      <text v-for="point in yAxis.points" v-bind:key="point" x="26" :y="490 - point.x + 5">{{point.value}}</text> <!-- numbers beside marks on Y axis -->
+      <text :id="'numberX' + xAxis.points.indexOf(point)" v-for="point in xAxis.points" v-bind:key="point" :x="point.x + 40" y="509" @click="changeStep(point, 'this.xAxis')">{{point.value}}</text> <!-- numbers below marks on X axis -->
+      
+      <text :id="'numberY' + yAxis.points.indexOf(point)" v-for="point in yAxis.points" v-bind:key="point" x="26" :y="490 - point.x + 5" @click="changeStep(point, 'this.yAxis')">{{point.value}}</text> <!-- numbers beside marks on Y axis -->
       
       <text class="axis" x="290" y="530">{{values.X}}</text> <!-- name of the X axis -->
       <text class="axis" transform="translate(11,245) rotate(-90)">{{values.Y}}</text> <!-- name of the Y axis -->
@@ -55,11 +55,11 @@ export default {
     for(var i = 0; i < 11; i++) {
       this.xAxis.points.push({})
       this.xAxis.points[i].x = 500/this.xAxis.pointsNum * (i + 1)
-      this.xAxis.points[i].value = (i + 1) * this.step;
+      this.xAxis.points[i].value = (i + 1);
 
       this.yAxis.points.push({})
       this.yAxis.points[i].x = 500/this.yAxis.pointsNum * (i + 1)
-      this.yAxis.points[i].value = (i + 1) * this.step;
+      this.yAxis.points[i].value = (i + 1);
     }   
   },
   data: function() {
@@ -71,7 +71,8 @@ export default {
         posSave: 0, //saved position after dragging has stopped
         start: 0, //start position of drag
         drag: 0, //drag length
-        mult: 1 //numbers on axis multiplier
+        mult: 1, //numbers on axis multiplier
+        step: 1
       },
       yAxis: {
         points: [],
@@ -80,7 +81,8 @@ export default {
         posSave: 0,
         start: 0,
         drag: 0,
-        mult: 1
+        mult: 1,
+        step: 1
       },
       userPoints: [], //points on graph added by user
       s: "", // selected axis
@@ -91,7 +93,6 @@ export default {
       args: [],
       newDetail: false,
       detailLive: {x: 0, y: 0},
-      step: 1,
 
       status: ""
     }
@@ -122,7 +123,6 @@ export default {
             this.yAxis.posSave = this.yAxis.posSave + this.yAxis.start - e.clientY
           }
         this.dragging = false
-        this.s.drag = 0;
       }
     },
     move: function(e) {
@@ -194,14 +194,7 @@ export default {
         }
 
         //set point numbers on axis 
-        for(var c = 0; c < this.s.points.length; c++) {
-          var val = (c + 1) * this.s.mult * this.step;
-          if(val < 1 && val.toString().split(".")[1].length > 2) {
-            this.s.points[c].value = val.toFixed(2);
-          } else {
-            this.s.points[c].value = val
-          }
-        }
+        this.setPointNumbers();
       } else {
         setTimeout(() => {this.liveDetail(e)}, 10)
       }
@@ -420,6 +413,50 @@ export default {
         }
       }
       this.newDetail = false;
+    },
+    changeStep: function(point, axis) {
+      this.numberValue = point;
+      this.s = eval(axis)
+
+      if(this.s == this.xAxis) {
+        document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight = "900";
+      } else {
+        document.getElementById('numberY' + this.yAxis.points.indexOf(point)).style.fontWeight = "900";
+      }
+    },
+    stepUpdate: function() {
+      if(this.numberValue != undefined) {
+        var pointIndex;
+
+        if(this.xAxis.points.includes(this.numberValue)) {
+          pointIndex = this.xAxis.points.indexOf(this.numberValue) + 1
+          this.s.step = this.values.stepX / pointIndex;
+          this.setPointNumbers()
+        } else {
+          pointIndex = this.yAxis.points.indexOf(this.numberValue) + 1
+          this.s.step = this.values.stepY / pointIndex;
+          this.setPointNumbers()
+        }
+        this.numberValue = undefined;
+      } else {
+        if(this.s == this.xAxis) {
+          this.s.step = this.values.stepX;
+          this.setPointNumbers()
+        } else if(this.s == this.yAxis) {
+          this.s.step = this.values.stepY;
+          this.setPointNumbers()
+        }
+      }
+    }, 
+    setPointNumbers: function() {
+      for(var c = 0; c < this.s.points.length; c++) {
+        var val = (c + 1) * this.s.mult * this.s.step;
+        if(val.toString().includes(".") && val.toString().split(".")[1].length > 2) {
+          this.s.points[c].value = val.toFixed(2);
+        } else {
+          this.s.points[c].value = val
+        }
+      }
     }
   }
 }
@@ -442,7 +479,7 @@ line {
 text {
   text-anchor: middle; 
   font-size: 12px;
-
+  user-select: none;
 }
 .userPoints {
   fill: #CD3810;

@@ -79,13 +79,29 @@
       <span class="slider"></span>
     </label>
 
-    <hr> <!-- separator -->
+    <hr>
 
     <table id="autoscale">
       <td class="buttons">
         <button @click="autoscale">Autoscale</button>
       </td>
     </table>
+
+    <p id="stepLabel">Step x<br>Step y</p>
+    <tr>
+       
+      <td id="step">
+        <input @change="emit" v-model="stepX">
+      </td>
+    </tr>
+    
+    <tr>
+      
+      <td id="step">
+        <input @change="emit" v-model="stepY">
+      </td>
+    </tr>
+    
   </div>
 </template>
 
@@ -124,7 +140,9 @@ export default {
           toggle: false,
 
           graphs: [],
-          colors: ['#cc5534', '#7396ff', '#90E580', '#FFCF00']
+          colors: ['#cc5534', '#7396ff', '#90E580', '#FFCF00'],
+          stepX: 1,
+          stepY: 1
       }
   },
   created() {
@@ -174,7 +192,7 @@ export default {
       }
     },
     emit: function() { //send collected values to graph
-      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, graphs: this.graphs})
+      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, graphs: this.graphs, stepX: this.stepX, stepY: this.stepY})
     },
     autoscale: function() {
       this.$emit('autoscale')
@@ -290,7 +308,7 @@ export default {
 #values .emptyCell {
   border: none;
 }
-#values input {
+#values input, #step input {
   font-size: 15px;
   width: 55px;
   text-align: center;
@@ -407,6 +425,7 @@ input:checked + .slider:before {
   margin-right: -2px;
   margin-left: auto;
   margin-top: -3px;
+  float: right;
 }
 #graphLabel {
   font-size: 17px;
@@ -425,7 +444,7 @@ input:checked + .slider:before {
   margin: 0px;
   margin-bottom: -6px;
 }
-#graphLabel, #pointsLabel, #customGraphLabel{
+#graphLabel, #pointsLabel, #customGraphLabel, #stepLabel{
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -470,6 +489,26 @@ input:checked + .slider:before {
   height: 24px;
   display: block;
   font-weight: lighter;
+}
+#step {
+  height: 20px;
+  width: 50px;
+  float: right;
+  margin-top: -1px;
+}
+
+#step input{
+  font-size: 14px;
+  height: 10px;
+  width: 45px;
+  margin-top: 3px;
+}
+
+#stepLabel {
+  font-size: 16px;
+  margin-top: 1px;
+  padding-right: 10px;
+  float: left;
 }
 
 

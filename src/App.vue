@@ -28,6 +28,7 @@ export default {
       setTimeout(() => {
         for(var i = 0; i < this.sent.graphs.length; i++) {
           this.$refs.graf.draw(i);
+          this.$refs.graf.stepUpdate();
         }
       }, 1)
     },
