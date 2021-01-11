@@ -1,6 +1,6 @@
 <template>
   <div class="spacer">
-    <svg id="wrapper">
+    <svg id="wrapper" @click="createDetailPoint">
       <line x1="40" y1="490" x2="530" y2="490" stroke="black"/> <!-- X axis line -->
       <line x1="40" y1="0" x2="40" y2="490" stroke="black"/> <!-- Y axis line -->
 
@@ -31,10 +31,11 @@
         <line class="graph" v-for="userPoint in values.values" v-bind:key="userPoint" :x1="graphX(userPoint) + 40" :y1="490 - graphY(userPoint)" :x2="userPointX(userPoint) + 40" :y2="490 - userPointY(userPoint)" />
       </svg>
 
+      <circle :cx="detailLive.x + 40" :cy="490 - detailLive.y" r="3" fill="#cc5534" :visibility="detailLive.visibility"/>
+
       <!-- User point hitbox-->
       <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red"/>
 
-      
     </svg>    
   </div>
   
@@ -46,6 +47,7 @@ import $ from 'jquery'
 
 export default {
   name: 'Graph',
+  emits: ['newExprPoint'],
   created() {
     for(var i = 0; i < 11; i++) {
       this.xAxis.points.push({})
@@ -82,6 +84,10 @@ export default {
       dragging: false,
       autoscalex: false,
       autoscaley: false,
+
+      args: [],
+      newDetail: false,
+      detailLive: {x: 0, y: 0},
       status: ""
     }
   },
@@ -191,6 +197,8 @@ export default {
             this.s.points[c].value = val
           }
         }
+      } else {
+        setTimeout(() => {this.liveDetail(e)}, 10)
       }
     },
     userPointX: function(value) { //translate X set by user to actual x position
@@ -342,7 +350,7 @@ export default {
           try {
             line.setAttribute('x1', (i - 1)  + origin.x);
             line.setAttribute('y1', -eval(inputConvertedOne) * this.yAxis.points[0].x / this.yAxis.mult + origin.y);
-
+        
             line.setAttribute('x2', i  + origin.x);
             line.setAttribute('y2', -eval(inputConvertedTwo) * this.yAxis.points[0].x / this.yAxis.mult + origin.y);
           } catch {
@@ -361,6 +369,11 @@ export default {
           
           document.getElementById("wrapper").appendChild(node)
         }
+        try {
+          this.args[point] = inputConvertedTwo
+        } catch {
+          this.args[point] = undefined;
+        }
       }
     },
     update: function() {
@@ -372,6 +385,36 @@ export default {
           }
         }
       }, 1)
+    },
+    createDetailPoint: function(e) {
+      this.newDetail = true;
+      this.liveDetail(e);
+    },
+    liveDetail: function(e) {
+      
+      var i = e.clientX - $("svg").offset().left - 40
+
+      for(var a = 0; a < this.values.graphs.length; a++) {
+        var y = Math.floor(eval(this.args[a]) * this.yAxis.points[0].x / this.yAxis.mult)
+
+        if((490 - e.clientY + $("svg").offset().top) < y + 10 && (490 - e.clientY + $("svg").offset().top) > y - 10) {
+          this.detailLive.visibility = "visible";
+          this.detailLive.x = i;
+          this.detailLive.y = y;
+
+          if(this.newDetail &&  this.detailLive.visibility == "visible") {
+           this.$emit('newExprPoint', {point: {
+              x: i,
+              X: (this.detailLive.x/this.xAxis.points[0].x * this.xAxis.mult).toFixed(3),
+              y: y,
+              Y: (this.detailLive.y/this.yAxis.points[0].x * this.yAxis.mult).toFixed(3)
+            }})
+          }
+        } else {
+          this.detailLive.visibility = "hidden";
+        }
+      }
+      this.newDetail = false;
     }
   }
 }

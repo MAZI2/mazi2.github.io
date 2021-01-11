@@ -19,7 +19,7 @@
           </div>
        
         </th>      
-        <td><input @input="emit" class="graphs" v-model="graph.input" placeholder="y = x"></td>
+        <td><input @input="emit" @change="updatePoints" class="graphs" v-model="graph.input" placeholder="y = x"></td>
       </tr>
     </table>
     <table id="buttons"> <!-- + and - buttons -->
@@ -42,9 +42,22 @@
         <td><input @input="emit" v-model="Y" placeholder="Y-axis"></td>
       </tr>
       <tr v-for="value in values" v-bind:key="value.index" @click="highlight(value)">
-        <th :id="'row' + value.index"><input @blur="clear" @input="emit" v-model="value.valueName" placeholder="Point 1"></th>      
-        <td><input @blur="order" v-model="value.x" placeholder="0"></td>
+        <th :id="'row' + value.index" @mouseover="setExprBind(value, 'show')" @mouseleave="setExprBind(value, 'hide')">
+          <input @blur="clear" @input="emit" v-model="value.valueName" placeholder="Point 1">
+          
+          <div class="dropdown-contentExpr" :id="'dropdown-contentExpr' + value.index" style="display: none" @mouseover="setExprBind(value, 'show')" @mouseleave="setExprBind(value, 'hide')">  
+            <tr v-for="graph in graphs" v-bind:key="graph.index">
+              <td :id="value.index + 'Expr' + graph.index" @click="bindExpr(graph, value)">
+                <span class="dotExpr">{{graph.valueName}}</span>
+              </td>
+            </tr>   
+          </div>
+
+        </th>      
+        <td><input @blur="order" @input="pointExpr(value)" v-model="value.x" placeholder="0"></td>
         <td><input @blur="clear" v-model="value.y" placeholder="0"></td>
+
+        
       </tr>
     </table>
 
@@ -94,11 +107,15 @@ function graph() {
   this.visibility = "visible"
   this.input = ""
   this.index = countGraph;
+  this.converted = "";
   countGraph++
 }
 
 export default {
   name: "Table",
+  props: {
+    points: Object //values from user points UI (userpoint (name, x, y), X and Y axis names, graph toggle)
+  },
   data: function() {
       return {
           values: [],
@@ -127,7 +144,7 @@ export default {
     clickPlus: function(value) {
       if(value == "point") {
         this.values[count] = new cell();  
-        this.order();
+        setTimeout(() => {this.order()}, 10)
       } else {
         this.graphs[countGraph] = new graph();
         this.graphs[countGraph - 1].color = "#cc5534";
@@ -172,6 +189,14 @@ export default {
         }
         this.values[i].index = this.values.indexOf(this.values[i])
         this.values[i].valueName = "Point " + (this.values[i].index + 1)
+
+       
+          for(var c = 0; c < this.graphs.length; c++) {
+            document.getElementById(this.values[i].index + 'Expr' + c).style.backgroundColor = "white";
+          }
+          if(this.values[i].expr != undefined) {
+            document.getElementById(this.values[i].index + 'Expr' + this.values[i].expr.index).style.backgroundColor = " #f1f1f1";
+          }
       }
       this.clear();
     },
@@ -200,6 +225,44 @@ export default {
         value.visibility = "visible"
       }
       this.emit();
+    },
+    status: function() {
+      this.values[count] = new cell()
+      this.values[count - 1].x = this.points.point.X
+      this.values[count - 1].y = this.points.point.Y
+      setTimeout(() => {this.order()}, 10)
+      
+    },
+    setExprBind: function(value, visibility) {
+      if(visibility == "show") {
+        document.getElementById('dropdown-contentExpr' + value.index).style.display = "inline";  
+      } else if(visibility == "hide"){
+        document.getElementById('dropdown-contentExpr' + value.index).style.display = "none";
+      } 
+    },
+    bindExpr: function(graph, value) {
+      for(var i = 0; i < this.graphs.length; i++) {
+        document.getElementById(value.index + 'Expr' + i).style.backgroundColor = "white";
+      }
+      document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor = " #f1f1f1";
+      value.expr = graph;
+    },
+    pointExpr: function(value) {
+        if(value.expr != undefined) {
+          var input;
+
+          if(value.expr.input.includes("y = ")) {
+            input = value.expr.input.replace("y = ", "")
+          } else if(value.expr.input.includes("y=")) {
+            input = value.expr.input.replace("y=", "")
+          }
+          value.y = eval(input.replace("x", value.x)) 
+        }
+    },
+    updatePoints: function() {
+      for(var i = 0; i < this.values.length; i++) {
+        this.pointExpr(this.values[i])
+      }
     }
   }
 }
@@ -364,17 +427,23 @@ input:checked + .slider:before {
 
 
 
-#dropdown-content {
-  margin-top: -8px;
+#dropdown-content, .dropdown-contentExpr {
   display: none;
   position: absolute;
-  left: 61px;
   width: 40px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
-
-
+#dropdown-content {
+  margin-top: -8px;
+  left: 61px;
+}
+.dropdown-contentExpr {
+  margin-top: -8px;
+  left: 37px;
+  width: 60px;
+}
 #dropdown-content td:hover {background-color: #f1f1f1;}
+.dropdown-contentExpr td:hover {background-color: #f1f1f1;}
 
 .graphName:hover #dropdown-content {
   display: inline;
@@ -385,6 +454,13 @@ input:checked + .slider:before {
   height: 25px;
   width: 25px;
   border-radius: 50%;
+  display: block;
+}
+.dotExpr { 
+  width: 60px;
+  margin: auto;
+  margin-top: 9px;
+  height: 24px;
   display: block;
 }
 
