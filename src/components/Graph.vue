@@ -415,14 +415,28 @@ export default {
       this.newDetail = false;
     },
     changeStep: function(point, axis) {
+      if(document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight == "") {
+        document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight = "500"
+      }
+
+      var state = document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight
       this.numberValue = point;
       this.s = eval(axis)
 
-      if(this.s == this.xAxis) {
-        document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight = "900";
-      } else {
-        document.getElementById('numberY' + this.yAxis.points.indexOf(point)).style.fontWeight = "900";
+      for(var i = 0; i < this.s.points.length; i++) {
+        if(this.s == this.xAxis) {
+          document.getElementById('numberX' + i).style.fontWeight = "500";
+        } else {
+          document.getElementById('numberY' + i).style.fontWeight = "500";
+        }
       }
+      if(state == "500") {
+        document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight = "900"
+      } else {
+        document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight = "500"
+        this.numberValue = undefined;
+      }
+
     },
     stepUpdate: function() {
       if(this.numberValue != undefined) {
@@ -432,10 +446,16 @@ export default {
           pointIndex = this.xAxis.points.indexOf(this.numberValue) + 1
           this.s.step = this.values.stepX / pointIndex;
           this.setPointNumbers()
+          for(var i = 0; i < this.xAxis.points.length; i++) {
+            document.getElementById('numberX' + i).style.fontWeight = "500";
+          }
         } else {
           pointIndex = this.yAxis.points.indexOf(this.numberValue) + 1
           this.s.step = this.values.stepY / pointIndex;
           this.setPointNumbers()
+          for(var j = 0; j < this.yAxis.points.length; j++) {
+            document.getElementById('numberY' + j).style.fontWeight = "500";
+          }
         }
         this.numberValue = undefined;
       } else {

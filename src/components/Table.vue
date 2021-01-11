@@ -81,26 +81,24 @@
 
     <hr>
 
+    <table id="values">
+    <tr>
+      <td id="stepLabel">Step x</td>
+      <td id="stepLabel">Step y</td>
+    </tr>
+    <tr> 
+      <td id="step"><input @change="emit" v-model="stepX"></td> 
+      <td id="step"><input @change="emit" v-model="stepY"></td>
+    </tr>
+    </table>
+    
+    <hr>
+    
     <table id="autoscale">
       <td class="buttons">
         <button @click="autoscale">Autoscale</button>
       </td>
     </table>
-
-    <p id="stepLabel">Step x<br>Step y</p>
-    <tr>
-       
-      <td id="step">
-        <input @change="emit" v-model="stepX">
-      </td>
-    </tr>
-    
-    <tr>
-      
-      <td id="step">
-        <input @change="emit" v-model="stepY">
-      </td>
-    </tr>
     
   </div>
 </template>
@@ -491,24 +489,18 @@ input:checked + .slider:before {
   font-weight: lighter;
 }
 #step {
-  height: 20px;
-  width: 50px;
-  float: right;
+  height: 25px;
+  width: 60px;
   margin-top: -1px;
 }
 
 #step input{
   font-size: 14px;
-  height: 10px;
-  width: 45px;
-  margin-top: 3px;
+  margin: auto;
 }
 
 #stepLabel {
-  font-size: 16px;
-  margin-top: 1px;
-  padding-right: 10px;
-  float: left;
+  height: 30px;
 }
 
 
