@@ -1,7 +1,7 @@
 <template>
 <div id="app" @mousedown="this.$refs.graf.startDrag($event)" @mousemove="move($event)" @mouseup="this.$refs.graf.stopDrag($event)">
-  <Table @newvalue="changevalue($event)" @autoscale="this.$refs.graf.autoscale($event)"></Table>
-  <Graph ref="graf" :values="sent"></Graph>
+  <Table ref="table" @newvalue="changevalue($event)" @autoscale="this.$refs.graf.autoscale($event)" :points="returned"></Table>
+  <Graph ref="graf" @newExprPoint="changevalueGraph($event)" :values="sent"></Graph>
 </div>
 </template>
 
@@ -14,6 +14,7 @@ export default {
   data: function() {
     return {
       sent: [],
+      returned: []
     }
   },
   components: {
@@ -27,13 +28,19 @@ export default {
       setTimeout(() => {
         for(var i = 0; i < this.sent.graphs.length; i++) {
           this.$refs.graf.draw(i);
+          this.$refs.graf.stepUpdate();
         }
       }, 1)
     },
     move: function(event) {
       this.$refs.graf.move(event)
     },
-    
+    changevalueGraph(value) {
+      this.returned = value;
+      setTimeout(() => {
+        this.$refs.table.status();
+      }, 1)
+    }
   }
 }
 </script>

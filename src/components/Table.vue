@@ -19,7 +19,7 @@
           </div>
        
         </th>      
-        <td><input @input="emit" class="graphs" v-model="graph.input" placeholder="y = x"></td>
+        <td><input @input="emit" @change="updatePoints" class="graphs" v-model="graph.input" placeholder="y = x"></td>
       </tr>
     </table>
     <table id="buttons"> <!-- + and - buttons -->
@@ -42,9 +42,22 @@
         <td><input @input="emit" v-model="Y" placeholder="Y-axis"></td>
       </tr>
       <tr v-for="value in values" v-bind:key="value.index" @click="highlight(value)">
-        <th :id="'row' + value.index"><input @blur="clear" @input="emit" v-model="value.valueName" placeholder="Point 1"></th>      
-        <td><input @blur="order" v-model="value.x" placeholder="0"></td>
+        <th :id="'row' + value.index" @mouseover="setExprBind(value, 'show')" @mouseleave="setExprBind(value, 'hide')">
+          <input @blur="clear" @input="emit" v-model="value.valueName" placeholder="Point 1">
+          
+          <div class="dropdown-contentExpr" :id="'dropdown-contentExpr' + value.index" style="display: none" @mouseover="setExprBind(value, 'show')" @mouseleave="setExprBind(value, 'hide')">  
+            <tr v-for="graph in graphs" v-bind:key="graph.index">
+              <td :id="value.index + 'Expr' + graph.index" @click="bindExpr(graph, value)">
+                <span class="dotExpr">{{graph.valueName}}</span>
+              </td>
+            </tr>   
+          </div>
+
+        </th>      
+        <td><input @blur="order" @input="pointExpr(value)" v-model="value.x" placeholder="0"></td>
         <td><input @blur="clear" v-model="value.y" placeholder="0"></td>
+
+        
       </tr>
     </table>
 
@@ -62,17 +75,38 @@
     <p id="graphLabel">Connect points</p>
 
     <label class="switch" > <!-- Connect points toggle -->
-      <input id="toggle" @click="connectPoints" @change="emit" type="checkbox" checked="true">
+      <input id="toggle" @click="connectPoints('toggle')" @change="emit" type="checkbox" checked="true">
       <span class="slider"></span>
     </label>
+    <br>
+    <div v-if="!toggle">
+     <label class="switch" > <!-- Connect points toggle -->
+      <input id="connectZero" @click="connectPoints('connectZero')" @change="emit" type="checkbox">
+      <span class="slider"></span>
+    </label>
+    </div>
 
-    <hr> <!-- separator -->
+    <hr>
 
+    <table id="values">
+    <tr>
+      <td id="stepLabel">Step x</td>
+      <td id="stepLabel">Step y</td>
+    </tr>
+    <tr> 
+      <td id="step"><input @change="emit" v-model="stepX"></td> 
+      <td id="step"><input @change="emit" v-model="stepY"></td>
+    </tr>
+    </table>
+    
+    <hr>
+    
     <table id="autoscale">
       <td class="buttons">
         <button @click="autoscale">Autoscale</button>
       </td>
     </table>
+    
   </div>
 </template>
 
@@ -94,11 +128,15 @@ function graph() {
   this.visibility = "visible"
   this.input = ""
   this.index = countGraph;
+  this.converted = "";
   countGraph++
 }
 
 export default {
   name: "Table",
+  props: {
+    points: Object //values from user points UI (userpoint (name, x, y), X and Y axis names, graph toggle)
+  },
   data: function() {
       return {
           values: [],
@@ -107,7 +145,11 @@ export default {
           toggle: false,
 
           graphs: [],
-          colors: ['#cc5534', '#7396ff', '#90E580', '#FFCF00']
+          colors: ['#cc5534', '#7396ff', '#90E580', '#FFCF00'],
+          stepX: 1,
+          stepY: 1,
+
+          connectZero: false
       }
   },
   created() {
@@ -127,7 +169,7 @@ export default {
     clickPlus: function(value) {
       if(value == "point") {
         this.values[count] = new cell();  
-        this.order();
+        setTimeout(() => {this.order()}, 10)
       } else {
         this.graphs[countGraph] = new graph();
         this.graphs[countGraph - 1].color = "#cc5534";
@@ -148,16 +190,26 @@ export default {
         }
       }
     },
-    connectPoints: function() {
-      var checkBox = document.getElementById("toggle");
+    connectPoints: function(select) {
+      var checkBox = document.getElementById(select);
+      
       if (checkBox.checked == true){
-        this.toggle = false;
+        if(select == "toggle") {
+          this.toggle = false;
+        } else {
+          this.connectZero = true;
+        }
       } else {
-        this.toggle = true;
+        if(select == "toggle") {
+          this.connectZero = false;
+          this.toggle = true;
+        } else {
+          this.connectZero = false;
+        }
       }
     },
     emit: function() { //send collected values to graph
-      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, graphs: this.graphs})
+      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, connectZero: this.connectZero, graphs: this.graphs, stepX: this.stepX, stepY: this.stepY})
     },
     autoscale: function() {
       this.$emit('autoscale')
@@ -172,6 +224,14 @@ export default {
         }
         this.values[i].index = this.values.indexOf(this.values[i])
         this.values[i].valueName = "Point " + (this.values[i].index + 1)
+
+       
+          for(var c = 0; c < this.graphs.length; c++) {
+            document.getElementById(this.values[i].index + 'Expr' + c).style.backgroundColor = "white";
+          }
+          if(this.values[i].expr != undefined) {
+            document.getElementById(this.values[i].index + 'Expr' + this.values[i].expr.index).style.backgroundColor = " #f1f1f1";
+          }
       }
       this.clear();
     },
@@ -200,6 +260,55 @@ export default {
         value.visibility = "visible"
       }
       this.emit();
+    },
+    status: function() {
+      this.values[count] = new cell()
+      this.values[count - 1].x = this.points.point.X
+      this.values[count - 1].y = this.points.point.Y
+      setTimeout(() => {this.order()}, 10)
+      
+    },
+    setExprBind: function(value, visibility) {
+      if(visibility == "show") {
+        document.getElementById('dropdown-contentExpr' + value.index).style.display = "inline";  
+      } else if(visibility == "hide"){
+        document.getElementById('dropdown-contentExpr' + value.index).style.display = "none";
+      } 
+    },
+    bindExpr: function(graph, value) {
+      if(document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor == "") {
+        document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor = "white"
+      }
+
+      var state = document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor
+
+      for(var i = 0; i < this.graphs.length; i++) {
+        document.getElementById(value.index + 'Expr' + i).style.backgroundColor = "white";
+      }
+      if(state == "white") {
+        document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor = "#f1f1f1";
+        value.expr = graph;
+      } else {
+        document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor = "white"
+        value.expr = undefined;
+      }
+    },
+    pointExpr: function(value) {
+        if(value.expr != undefined) {
+          var input;
+
+          if(value.expr.input.includes("y = ")) {
+            input = value.expr.input.replace("y = ", "")
+          } else if(value.expr.input.includes("y=")) {
+            input = value.expr.input.replace("y=", "")
+          }
+          value.y = eval(input.replace("x", value.x)) 
+        }
+    },
+    updatePoints: function() {
+      for(var i = 0; i < this.values.length; i++) {
+        this.pointExpr(this.values[i])
+      }
     }
   }
 }
@@ -220,7 +329,7 @@ export default {
 #values .emptyCell {
   border: none;
 }
-#values input {
+#values input, #step input {
   font-size: 15px;
   width: 55px;
   text-align: center;
@@ -337,6 +446,7 @@ input:checked + .slider:before {
   margin-right: -2px;
   margin-left: auto;
   margin-top: -3px;
+  float: right;
 }
 #graphLabel {
   font-size: 17px;
@@ -355,7 +465,7 @@ input:checked + .slider:before {
   margin: 0px;
   margin-bottom: -6px;
 }
-#graphLabel, #pointsLabel, #customGraphLabel{
+#graphLabel, #pointsLabel, #customGraphLabel, #stepLabel{
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -364,17 +474,23 @@ input:checked + .slider:before {
 
 
 
-#dropdown-content {
-  margin-top: -8px;
+#dropdown-content, .dropdown-contentExpr {
   display: none;
   position: absolute;
-  left: 61px;
   width: 40px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
-
-
+#dropdown-content {
+  margin-top: -8px;
+  left: 61px;
+}
+.dropdown-contentExpr {
+  margin-top: -8px;
+  left: 37px;
+  width: 60px;
+}
 #dropdown-content td:hover {background-color: #f1f1f1;}
+.dropdown-contentExpr td:hover {background-color: #f1f1f1;}
 
 .graphName:hover #dropdown-content {
   display: inline;
@@ -386,6 +502,28 @@ input:checked + .slider:before {
   width: 25px;
   border-radius: 50%;
   display: block;
+}
+.dotExpr { 
+  width: 60px;
+  margin: auto;
+  margin-top: 9px;
+  height: 24px;
+  display: block;
+  font-weight: lighter;
+}
+#step {
+  height: 25px;
+  width: 60px;
+  margin-top: -1px;
+}
+
+#step input{
+  font-size: 14px;
+  margin: auto;
+}
+
+#stepLabel {
+  height: 30px;
 }
 
 

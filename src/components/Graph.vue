@@ -1,6 +1,6 @@
 <template>
   <div class="spacer">
-    <svg id="wrapper">
+    <svg id="wrapper" @click="createDetailPoint">
       <line x1="40" y1="490" x2="530" y2="490" stroke="black"/> <!-- X axis line -->
       <line x1="40" y1="0" x2="40" y2="490" stroke="black"/> <!-- Y axis line -->
 
@@ -10,8 +10,9 @@
       <line class="grid" v-for="point in xAxis.points" v-bind:key="point" :x1="point.x + 40" y1="0" :x2="point.x + 40" y2="490" /> <!-- vertical grid lines -->
       <line class="grid" v-for="point in yAxis.points" v-bind:key="point" x1="40" :y1="490 -point.x" x2="530" :y2="490 - point.x" /> <!-- horizontal grid lines -->
 
-      <text v-for="point in xAxis.points" v-bind:key="point" :x="point.x + 40" y="509">{{point.value}}</text> <!-- numbers below marks on X axis -->
-      <text v-for="point in yAxis.points" v-bind:key="point" x="26" :y="490 - point.x + 5">{{point.value}}</text> <!-- numbers beside marks on Y axis -->
+      
+      <text :id="'numberX' + xAxis.points.indexOf(point)" v-for="point in xAxis.points" v-bind:key="point" :x="point.x + 40" y="509" @click="changeStep(point, 'this.xAxis')">{{point.value}}</text> <!-- numbers below marks on X axis -->
+      <text :id="'numberY' + yAxis.points.indexOf(point)" v-for="point in yAxis.points" v-bind:key="point" x="26" :y="490 - point.x + 5" @click="changeStep(point, 'this.yAxis')">{{point.value}}</text> <!-- numbers beside marks on Y axis -->
       
       <text class="axis" x="290" y="530">{{values.X}}</text> <!-- name of the X axis -->
       <text class="axis" transform="translate(11,245) rotate(-90)">{{values.Y}}</text> <!-- name of the Y axis -->
@@ -20,8 +21,8 @@
       <line class="details" v-for="userPoint in values.values" v-bind:key="userPoint" :x1="userPointX(userPoint) + 40" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" y2="507" :visibility="userPoint.pointNameVisibility" />
       <text class="detailsText" v-for="userPoint in values.values" v-bind:key="userPoint" :x="userPointX(userPoint) + 40" y="522" :visibility="userPoint.pointNameVisibility">{{userPoint.x}}</text>
       <!-- User point details for Y-axis -->
-      <line class="details" v-for="userPoint in values.values" v-bind:key="userPoint" x1="26" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" :y2="490 - userPointY(userPoint)" :visibility="userPoint.pointNameVisibility" />
-      <text class="detailsText" v-for="userPoint in values.values" v-bind:key="userPoint" x="12" :y="490 - userPointY(userPoint) + 4" :visibility="userPoint.pointNameVisibility">{{userPoint.y}}</text>
+      <line class="details" v-for="userPoint in values.values" v-bind:key="userPoint" x1="30" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" :y2="490 - userPointY(userPoint)" :visibility="userPoint.pointNameVisibility" />
+      <text class="detailsText" v-for="userPoint in values.values" v-bind:key="userPoint" x="15" :y="490 - userPointY(userPoint) + 4" :visibility="userPoint.pointNameVisibility">{{userPoint.y}}</text>
 
       <text v-for="userPoint in values.values" v-bind:key="userPoint" :x="userPointX(userPoint) + 40" :y="490 - userPointY(userPoint) - 10" :visibility="userPoint.pointNameVisibility">{{userPoint.valueName}}</text>
 
@@ -31,11 +32,13 @@
         <line class="graph" v-for="userPoint in values.values" v-bind:key="userPoint" :x1="graphX(userPoint) + 40" :y1="490 - graphY(userPoint)" :x2="userPointX(userPoint) + 40" :y2="490 - userPointY(userPoint)" />
       </svg>
 
+      <circle :cx="detailLive.x + 40" :cy="490 - detailLive.y" r="3" fill="#cc5534" :visibility="detailLive.visibility"/>
+
       <!-- User point hitbox-->
       <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red"/>
 
       
-    </svg>    
+    </svg>   
   </div>
   
   {{status}}
@@ -46,15 +49,16 @@ import $ from 'jquery'
 
 export default {
   name: 'Graph',
+  emits: ['newExprPoint'],
   created() {
     for(var i = 0; i < 11; i++) {
       this.xAxis.points.push({})
       this.xAxis.points[i].x = 500/this.xAxis.pointsNum * (i + 1)
-      this.xAxis.points[i].value = i + 1;
+      this.xAxis.points[i].value = (i + 1);
 
       this.yAxis.points.push({})
       this.yAxis.points[i].x = 500/this.yAxis.pointsNum * (i + 1)
-      this.yAxis.points[i].value = i + 1;
+      this.yAxis.points[i].value = (i + 1);
     }   
   },
   data: function() {
@@ -66,7 +70,8 @@ export default {
         posSave: 0, //saved position after dragging has stopped
         start: 0, //start position of drag
         drag: 0, //drag length
-        mult: 1 //numbers on axis multiplier
+        mult: 1, //numbers on axis multiplier
+        step: 1
       },
       yAxis: {
         points: [],
@@ -75,13 +80,19 @@ export default {
         posSave: 0,
         start: 0,
         drag: 0,
-        mult: 1
+        mult: 1,
+        step: 1
       },
       userPoints: [], //points on graph added by user
       s: "", // selected axis
       dragging: false,
       autoscalex: false,
       autoscaley: false,
+
+      args: [],
+      newDetail: false,
+      detailLive: {x: 0, y: 0, visibility: "hidden"},
+
       status: ""
     }
   },
@@ -111,7 +122,6 @@ export default {
             this.yAxis.posSave = this.yAxis.posSave + this.yAxis.start - e.clientY
           }
         this.dragging = false
-        this.s.drag = 0;
       }
     },
     move: function(e) {
@@ -183,14 +193,9 @@ export default {
         }
 
         //set point numbers on axis 
-        for(var c = 0; c < this.s.points.length; c++) {
-          var val = (c + 1) * this.s.mult;
-          if(val < 1 && val.toString().split(".")[1].length > 2) {
-            this.s.points[c].value = val.toFixed(2);
-          } else {
-            this.s.points[c].value = val
-          }
-        }
+        this.setPointNumbers();
+      } else {
+        setTimeout(() => {this.liveDetail(e)}, 10)
       }
     },
     userPointX: function(value) { //translate X set by user to actual x position
@@ -236,8 +241,10 @@ export default {
 
       if(value.index >= 1) {
         x = this.userPointX(this.values.values[value.index - 1])
-      } else {
+      } else if(this.values.connectZero){
         x = 0;
+      } else {
+        x = this.userPointX(this.values.values[value.index])
       }
       return x;
     },
@@ -246,8 +253,10 @@ export default {
 
       if(value.index >= 1) {
         y = this.userPointY(this.values.values[value.index - 1])
-      } else {
+      } else if(this.values.connectZero) {
         y = 0;
+      } else {
+        y = this.userPointY(this.values.values[value.index])
       }
       return y;
     },
@@ -342,7 +351,7 @@ export default {
           try {
             line.setAttribute('x1', (i - 1)  + origin.x);
             line.setAttribute('y1', -eval(inputConvertedOne) * this.yAxis.points[0].x / this.yAxis.mult + origin.y);
-
+        
             line.setAttribute('x2', i  + origin.x);
             line.setAttribute('y2', -eval(inputConvertedTwo) * this.yAxis.points[0].x / this.yAxis.mult + origin.y);
           } catch {
@@ -361,6 +370,11 @@ export default {
           
           document.getElementById("wrapper").appendChild(node)
         }
+        try {
+          this.args[point] = inputConvertedTwo
+        } catch {
+          this.args[point] = undefined;
+        }
       }
     },
     update: function() {
@@ -372,6 +386,99 @@ export default {
           }
         }
       }, 1)
+    },
+    createDetailPoint: function(e) {
+      this.newDetail = true;
+      this.liveDetail(e);
+    },
+    liveDetail: function(e) {
+      var i = e.clientX - $("svg").offset().left - 40
+
+      for(var a = 0; a < this.values.graphs.length; a++) {
+        var y = Math.floor(eval(this.args[a]) * this.yAxis.points[0].x / this.yAxis.mult)
+
+        if((490 - e.clientY + $("svg").offset().top) < y + 3 && (490 - e.clientY + $("svg").offset().top) > y - 3 && i > 0) {
+          this.detailLive.visibility = "visible";
+          this.detailLive.x = i;
+          this.detailLive.y = y;
+
+          if(this.newDetail &&  this.detailLive.visibility == "visible") {
+           this.$emit('newExprPoint', {point: {
+              x: i,
+              X: (this.detailLive.x/this.xAxis.points[0].x * this.xAxis.mult).toFixed(3),
+              y: y,
+              Y: (this.detailLive.y/this.yAxis.points[0].x * this.yAxis.mult).toFixed(3)
+            }})
+          }
+        } else {
+          this.detailLive.visibility = "hidden";
+        }
+      }
+      this.newDetail = false;
+    },
+    changeStep: function(point, axis) {
+      if(document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight == "") {
+        document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight = "500"
+      }
+
+      var state = document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight
+      this.numberValue = point;
+      this.s = eval(axis)
+
+      for(var i = 0; i < this.s.points.length; i++) {
+        if(this.s == this.xAxis) {
+          document.getElementById('numberX' + i).style.fontWeight = "500";
+        } else {
+          document.getElementById('numberY' + i).style.fontWeight = "500";
+        }
+      }
+      if(state == "500") {
+        document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight = "900"
+      } else {
+        document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight = "500"
+        this.numberValue = undefined;
+      }
+
+    },
+    stepUpdate: function() {
+      if(this.numberValue != undefined) {
+        var pointIndex;
+
+        if(this.xAxis.points.includes(this.numberValue)) {
+          pointIndex = this.xAxis.points.indexOf(this.numberValue) + 1
+          this.s.step = this.values.stepX / pointIndex;
+          this.setPointNumbers()
+          for(var i = 0; i < this.xAxis.points.length; i++) {
+            document.getElementById('numberX' + i).style.fontWeight = "500";
+          }
+        } else {
+          pointIndex = this.yAxis.points.indexOf(this.numberValue) + 1
+          this.s.step = this.values.stepY / pointIndex;
+          this.setPointNumbers()
+          for(var j = 0; j < this.yAxis.points.length; j++) {
+            document.getElementById('numberY' + j).style.fontWeight = "500";
+          }
+        }
+        this.numberValue = undefined;
+      } else {
+        if(this.s == this.xAxis) {
+          this.s.step = this.values.stepX;
+          this.setPointNumbers()
+        } else if(this.s == this.yAxis) {
+          this.s.step = this.values.stepY;
+          this.setPointNumbers()
+        }
+      }
+    }, 
+    setPointNumbers: function() {
+      for(var c = 0; c < this.s.points.length; c++) {
+        var val = (c + 1) * this.s.mult * this.s.step;
+        if(val.toString().includes(".") && val.toString().split(".")[1].length > 2) {
+          this.s.points[c].value = val.toFixed(2);
+        } else {
+          this.s.points[c].value = val
+        }
+      }
     }
   }
 }
@@ -394,9 +501,6 @@ line {
 text {
   text-anchor: middle; 
   font-size: 12px;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
 }
 .userPoints {
