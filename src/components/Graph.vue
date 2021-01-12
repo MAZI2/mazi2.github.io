@@ -1,6 +1,6 @@
 <template>
   <div class="spacer">
-    <svg id="wrapper" @click="createDetailPoint">
+    <svg id="wrapper" @click="createDetailPoint" @wheel.prevent="scrollSet($event)">
       <line x1="40" y1="490" x2="530" y2="490" stroke="black"/> <!-- X axis line -->
       <line x1="40" y1="0" x2="40" y2="490" stroke="black"/> <!-- Y axis line -->
 
@@ -59,7 +59,19 @@ export default {
       this.yAxis.points.push({})
       this.yAxis.points[i].x = 500/this.yAxis.pointsNum * (i + 1)
       this.yAxis.points[i].value = (i + 1);
-    }   
+    }    
+  },
+  mounted() {
+    window.addEventListener('keydown', event => {
+      if (event.keyCode === 17) { 
+        this.scrollModifier("pressed")
+      }
+    })
+    window.addEventListener('keyup', event => {
+      if (event.keyCode === 17) { 
+        this.scrollModifier("released")
+      }
+    })
   },
   data: function() {
     return {
@@ -92,6 +104,8 @@ export default {
       args: [],
       newDetail: false,
       detailLive: {x: 0, y: 0, visibility: "hidden"},
+      scroll: {X: 0, Y: 0},
+      scrollMod: false,
 
       status: ""
     }
@@ -120,9 +134,9 @@ export default {
             this.xAxis.posSave = this.xAxis.posSave + this.xAxis.start - e.clientX //saved position
           } else if(this.s == this.yAxis) {
             this.yAxis.posSave = this.yAxis.posSave + this.yAxis.start - e.clientY
-          }
+          } 
         this.dragging = false
-      }
+      } 
     },
     move: function(e) {
       if(this.dragging || this.autoscalex || this.autoscaley) {
@@ -141,12 +155,16 @@ export default {
           cursor = e.clientY  
         }
        
-        if(this.s == this.xAxis) {  
+        if(this.s == this.xAxis && !this.autoscalex) {  
           this.s.drag = (this.s.start - cursor)
           this.s.line = 500 - this.s.posSave - this.s.drag;
-        } else {
+        } else if (this.s == this.yAxis && !this.autoscaley){
           this.s.drag = -(this.s.start - cursor)
           this.s.line = 500 + this.s.posSave - this.s.drag;
+        } else if(this.autoscaley) {
+          this.s.line = 500 + this.s.posSave
+        } else if(this.autoscalex && !this.autoscaley) {
+          this.s.line = 500 - this.s.posSave
         }
        
         
@@ -263,6 +281,8 @@ export default {
     autoscale: async function(event, callback, direction) {
       var pointForX = this.values.values[this.values.values.length - 1]
       var pointForY = this.values.values[0];
+      var savePosX = this.xAxis.posSave;
+      var savePosY = this.yAxis.posSave;
 
       for(var j = 1; j < this.values.values.length; j++) {
         if(parseFloat(this.values.values[j].y) > parseFloat(pointForY.y)) {
@@ -292,6 +312,13 @@ export default {
         } 
         await this.sleep(1);
       }
+      this.xAxis.posSave = savePosX
+      this.yAxis.posSave = savePosY
+
+      this.autoscaley = true;
+      this.move(event)
+      this.autoscaley = false;
+      this.move(event)
       this.autoscalex = false; 
 
       if(pointForX.x > this.xAxis.points[this.xAxis.points.length - 2].value && pointForY.y > this.yAxis.points[this.yAxis.points.length - 2].value) {
@@ -478,6 +505,37 @@ export default {
         } else {
           this.s.points[c].value = val
         }
+      }
+    },
+    scrollSet: function(event) { 
+      var savePosY = this.yAxis.posSave;
+      var savePosX = this.xAxis.posSave;
+     
+      if(this.scrollMod) {
+        event.deltaY < 0 ? this.scroll.X +=20 : this.scroll.X -=20
+      } else {
+        event.deltaY < 0 ? this.scroll.Y +=20 : this.scroll.Y -=20
+      }
+    
+      this.yAxis.posSave = savePosY + this.scroll.Y
+      this.xAxis.posSave = savePosX + this.scroll.X
+      
+      this.autoscalex = true; 
+      this.autoscaley = true;
+      this.move(event)
+      this.autoscaley = false;
+      this.move(event)
+      this.autoscalex = false; 
+
+      this.scroll.X = 0
+      this.scroll.Y = 0
+    },
+    scrollModifier: function(key) {
+      if(key == "pressed") {
+        console.log("jaaaaaa")
+        this.scrollMod = true
+      } else if(key == "released") {
+        this.scrollMod = false
       }
     }
   }

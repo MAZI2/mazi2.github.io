@@ -75,7 +75,7 @@
     <p id="graphLabel">Connect points</p>
 
     <label class="switch" > <!-- Connect points toggle -->
-      <input id="toggle" @click="connectPoints('toggle')" @change="emit" type="checkbox" checked="true">
+      <input id="toggle" @click="connectPoints('toggle')" @change="emit" type="checkbox" >
       <span class="slider"></span>
     </label>
     <br>
@@ -142,7 +142,7 @@ export default {
           values: [],
           X: 'X-axis',
           Y: 'Y-axis',
-          toggle: false,
+          toggle: true,
 
           graphs: [],
           colors: ['#cc5534', '#7396ff', '#90E580', '#FFCF00'],
