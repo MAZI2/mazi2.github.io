@@ -75,9 +75,16 @@
     <p id="graphLabel">Connect points</p>
 
     <label class="switch" > <!-- Connect points toggle -->
-      <input id="toggle" @click="connectPoints" @change="emit" type="checkbox" checked="true">
+      <input id="toggle" @click="connectPoints('toggle')" @change="emit" type="checkbox" checked="true">
       <span class="slider"></span>
     </label>
+    <br>
+    <div v-if="!toggle">
+     <label class="switch" > <!-- Connect points toggle -->
+      <input id="connectZero" @click="connectPoints('connectZero')" @change="emit" type="checkbox">
+      <span class="slider"></span>
+    </label>
+    </div>
 
     <hr>
 
@@ -140,7 +147,9 @@ export default {
           graphs: [],
           colors: ['#cc5534', '#7396ff', '#90E580', '#FFCF00'],
           stepX: 1,
-          stepY: 1
+          stepY: 1,
+
+          connectZero: false
       }
   },
   created() {
@@ -181,16 +190,26 @@ export default {
         }
       }
     },
-    connectPoints: function() {
-      var checkBox = document.getElementById("toggle");
+    connectPoints: function(select) {
+      var checkBox = document.getElementById(select);
+      
       if (checkBox.checked == true){
-        this.toggle = false;
+        if(select == "toggle") {
+          this.toggle = false;
+        } else {
+          this.connectZero = true;
+        }
       } else {
-        this.toggle = true;
+        if(select == "toggle") {
+          this.connectZero = false;
+          this.toggle = true;
+        } else {
+          this.connectZero = false;
+        }
       }
     },
     emit: function() { //send collected values to graph
-      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, graphs: this.graphs, stepX: this.stepX, stepY: this.stepY})
+      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, connectZero: this.connectZero, graphs: this.graphs, stepX: this.stepX, stepY: this.stepY})
     },
     autoscale: function() {
       this.$emit('autoscale')
@@ -257,6 +276,10 @@ export default {
       } 
     },
     bindExpr: function(graph, value) {
+      if(document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor == "") {
+        document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor = "white"
+      }
+
       var state = document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor
 
       for(var i = 0; i < this.graphs.length; i++) {

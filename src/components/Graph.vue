@@ -12,7 +12,6 @@
 
       
       <text :id="'numberX' + xAxis.points.indexOf(point)" v-for="point in xAxis.points" v-bind:key="point" :x="point.x + 40" y="509" @click="changeStep(point, 'this.xAxis')">{{point.value}}</text> <!-- numbers below marks on X axis -->
-      
       <text :id="'numberY' + yAxis.points.indexOf(point)" v-for="point in yAxis.points" v-bind:key="point" x="26" :y="490 - point.x + 5" @click="changeStep(point, 'this.yAxis')">{{point.value}}</text> <!-- numbers beside marks on Y axis -->
       
       <text class="axis" x="290" y="530">{{values.X}}</text> <!-- name of the X axis -->
@@ -92,7 +91,7 @@ export default {
 
       args: [],
       newDetail: false,
-      detailLive: {x: 0, y: 0},
+      detailLive: {x: 0, y: 0, visibility: "hidden"},
 
       status: ""
     }
@@ -242,8 +241,10 @@ export default {
 
       if(value.index >= 1) {
         x = this.userPointX(this.values.values[value.index - 1])
-      } else {
+      } else if(this.values.connectZero){
         x = 0;
+      } else {
+        x = this.userPointX(this.values.values[value.index])
       }
       return x;
     },
@@ -252,8 +253,10 @@ export default {
 
       if(value.index >= 1) {
         y = this.userPointY(this.values.values[value.index - 1])
-      } else {
+      } else if(this.values.connectZero) {
         y = 0;
+      } else {
+        y = this.userPointY(this.values.values[value.index])
       }
       return y;
     },
@@ -389,13 +392,12 @@ export default {
       this.liveDetail(e);
     },
     liveDetail: function(e) {
-      
       var i = e.clientX - $("svg").offset().left - 40
 
       for(var a = 0; a < this.values.graphs.length; a++) {
         var y = Math.floor(eval(this.args[a]) * this.yAxis.points[0].x / this.yAxis.mult)
 
-        if((490 - e.clientY + $("svg").offset().top) < y + 3 && (490 - e.clientY + $("svg").offset().top) > y - 3) {
+        if((490 - e.clientY + $("svg").offset().top) < y + 3 && (490 - e.clientY + $("svg").offset().top) > y - 3 && i > 0) {
           this.detailLive.visibility = "visible";
           this.detailLive.x = i;
           this.detailLive.y = y;
