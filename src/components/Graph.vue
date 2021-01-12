@@ -446,14 +446,14 @@ export default {
 
         if(this.xAxis.points.includes(this.numberValue)) {
           pointIndex = this.xAxis.points.indexOf(this.numberValue) + 1
-          this.s.step = this.values.stepX / pointIndex;
+          this.s.step = this.values.stepX / pointIndex / this.s.mult;
           this.setPointNumbers()
           for(var i = 0; i < this.xAxis.points.length; i++) {
             document.getElementById('numberX' + i).style.fontWeight = "500";
           }
         } else {
           pointIndex = this.yAxis.points.indexOf(this.numberValue) + 1
-          this.s.step = this.values.stepY / pointIndex;
+          this.s.step = this.values.stepY / pointIndex / this.s.mult;
           this.setPointNumbers()
           for(var j = 0; j < this.yAxis.points.length; j++) {
             document.getElementById('numberY' + j).style.fontWeight = "500";
