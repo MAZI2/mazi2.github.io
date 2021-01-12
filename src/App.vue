@@ -31,8 +31,10 @@ export default {
       setTimeout(() => {
         for(var i = 0; i < this.sent.graphs.length; i++) {
           this.$refs.graf.draw(i);
-          if(this.stepSaveX != value.stepX || this.stepSaveY != value.stepY)
-          this.$refs.graf.stepUpdate();
+
+          if(this.stepSaveX != value.stepX || this.stepSaveY != value.stepY) {
+            this.$refs.graf.stepUpdate();
+          }
           this.stepSaveX = value.stepX;
           this.stepSaveY = value.stepY;
         }
