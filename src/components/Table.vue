@@ -88,14 +88,11 @@
 
     <hr>
 
+    
+<p id="stepLabel">Step</p>
     <table id="values">
-    <tr>
-      <td id="stepLabel">Step x</td>
-      <td id="stepLabel">Step y</td>
-    </tr>
     <tr> 
-      <td id="step"><input @change="emit" v-model="stepX"></td> 
-      <td id="step"><input @change="emit" v-model="stepY"></td>
+      <td id="step"><input @change="emit" v-model="step"></td> 
     </tr>
     </table>
     
@@ -146,8 +143,7 @@ export default {
 
           graphs: [],
           colors: ['#cc5534', '#7396ff', '#90E580', '#FFCF00'],
-          stepX: 1,
-          stepY: 1,
+          step: 1,
 
           connectZero: false
       }
@@ -209,7 +205,7 @@ export default {
       }
     },
     emit: function() { //send collected values to graph
-      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, connectZero: this.connectZero, graphs: this.graphs, stepX: this.stepX, stepY: this.stepY})
+      this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, connectZero: this.connectZero, graphs: this.graphs, step: this.step})
     },
     autoscale: function() {
       this.$emit('autoscale')
@@ -512,9 +508,10 @@ input:checked + .slider:before {
   font-weight: lighter;
 }
 #step {
-  height: 25px;
+  height: 23px;
   width: 60px;
-  margin-top: -1px;
+  margin-top: -20px;
+  float: right;
 }
 
 #step input{
@@ -524,6 +521,7 @@ input:checked + .slider:before {
 
 #stepLabel {
   height: 30px;
+  margin-bottom: -15px;
 }
 
 

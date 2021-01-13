@@ -15,8 +15,7 @@ export default {
     return {
       sent: [],
       returned: [],
-      stepSaveX: 0,
-      stepSaveY: 0
+      stepSave: 0,
     }
   },
   components: {
@@ -32,11 +31,10 @@ export default {
         for(var i = 0; i < this.sent.graphs.length; i++) {
           this.$refs.graf.draw(i);
 
-          if(this.stepSaveX != value.stepX || this.stepSaveY != value.stepY) {
+          if(this.stepSave != value.step) {
             this.$refs.graf.stepUpdate();
           }
-          this.stepSaveX = value.stepX;
-          this.stepSaveY = value.stepY;
+          this.stepSave = value.step;
         }
       }, 1)
       
