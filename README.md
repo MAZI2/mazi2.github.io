@@ -14,7 +14,7 @@ __Show/hide__ expression with click on expression name.
 
 ### Configure axis
 Set x and y-axis __name__ and change their __scale__ with _click and drag_ or by _scrolling_.  
-Configure step by changing __Step x and y__ or choosing a __step on axis__ and changing its value.
+Configure step by choosing a __step on axis__ and changing value in Step box. If step is not selected, both axis will change step.
 
 ### Features
 __Connect__ points.  
