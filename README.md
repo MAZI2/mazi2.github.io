@@ -8,7 +8,7 @@ __Bind expression__ to point by hovering over point name.
 
 ### New expression
 Add or remove expression and set __y value__ (_"y = ..." / y=..._) (Example: _y = (3 * x) + 2_ )  
-Also supports javascript ```Math.``` so to use them in expression use Math. (Example: _y = 3 * **Math.**_cos(x + 5)_ )  
+Also supports javascript ```Math.``` so to use them in expression use Math. (Example: _y = 3 * _**Math.**_cos(x + 5)_ )  
 Set __color__ of expression  
 __Show/hide__ expression with click on expression name.
 
