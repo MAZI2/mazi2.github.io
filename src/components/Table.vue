@@ -2,27 +2,27 @@
   <div id="table">
     <p id="customGraphLabel">Expressions</p>
 
-    <hr> <!-- separator -->
+    <hr>   <!-- separator -->
 
-    <table id="values">
-      <tr v-for="graph in graphs" v-bind:key="graph">
-        
-        <th class="graphName" :id="'rowGraph' + graph.index" @click="changeVisibility(graph)">
-          <input @input="emit" v-model="graph.valueName" placeholder="P0">
+    <table id="values">   <!-- table for expressions -->
+      <tr v-for="graph in graphs" v-bind:key="graph">   <!-- row for each expression -->
+        <th class="graphName" :id="'rowGraph' + graph.index" @click="changeVisibility(graph)">   <!-- cell for name of expression -->
+          <input @input="emit" v-model="graph.valueName" placeholder="Expr 1">   <!-- name of expression input -->
             
-          <div id="dropdown-content">  
+          <div id="dropdown-content">   <!-- dropdown of colors for expressions -->
             <tr v-for="color of colors" v-bind:key="color">
               <td @click="changeGraphColor(graph, color)">
                 <span class="dot" :style="'background-color:' + color + ';'"></span>
               </td>
             </tr>   
           </div>
-       
-        </th>      
-        <td><input @input="emit" @change="updatePoints" class="graphs" v-model="graph.input" placeholder="y = x"></td>
+        </th> 
+
+        <td><input @input="emit" @change="updatePoints" class="graphs" v-model="graph.input" placeholder="y = x"></td>   <!-- expression input -->
       </tr>
     </table>
-    <table id="buttons"> <!-- + and - buttons -->
+
+    <table id="buttons">   <!-- + and - buttons -->
       <td class="buttons">
         <button @click="clickPlus">+</button>
       </td>
@@ -33,18 +33,20 @@
 
     <p id="pointsLabel">Points</p>
 
-    <hr> <!-- separator -->
+    <hr>   <!-- separator -->
     
-    <table id="values">
+    <table id="values">   <!-- table for points -->
       <tr>
         <td class="emptyCell"></td>
-        <td><input @input="emit" v-model="X" placeholder="X-axis"></td>
+        <td><input @input="emit" v-model="X" placeholder="X-axis"></td>   
         <td><input @input="emit" v-model="Y" placeholder="Y-axis"></td>
       </tr>
-      <tr v-for="value in values" v-bind:key="value.index" @click="highlight(value)">
-        <th :id="'row' + value.index" @mouseover="setExprBind(value, 'show')" @mouseleave="setExprBind(value, 'hide')">
-          <input @blur="clear" @input="emit" v-model="value.valueName" placeholder="Point 1">
+
+      <tr v-for="value in values" v-bind:key="value.index" @click="highlight(value)">   <!-- row for each point -->
+        <th :id="'row' + value.index" @mouseover="setExprBind(value, 'show')" @mouseleave="setExprBind(value, 'hide')">   <!-- cell for point name -->
+          <input @blur="clear" @input="emit" v-model="value.valueName" placeholder="Point 1">   <!-- point name input -->
           
+          <!-- Dropdown of expressions to bind -->
           <div class="dropdown-contentExpr" :id="'dropdown-contentExpr' + value.index" style="display: none" @mouseover="setExprBind(value, 'show')" @mouseleave="setExprBind(value, 'hide')">  
             <tr v-for="graph in graphs" v-bind:key="graph.index">
               <td :id="value.index + 'Expr' + graph.index" @click="bindExpr(graph, value)">
@@ -52,16 +54,14 @@
               </td>
             </tr>   
           </div>
+        </th>
 
-        </th>      
-        <td><input @blur="order" @input="pointExpr(value)" v-model="value.x" placeholder="0"></td>
-        <td><input @blur="clear" v-model="value.y" placeholder="0"></td>
-
-        
+        <td><input @blur="order" @input="pointExpr(value)" v-model="value.x" placeholder="0"></td>   <!-- x of point input -->
+        <td><input @blur="clear" v-model="value.y" placeholder="0"></td>   <!-- y of point input -->
       </tr>
     </table>
 
-    <table id="buttons"> <!-- + and - buttons -->
+    <table id="buttons">   <!-- + and - buttons -->
       <td class="buttons">
         <button @click="clickPlus('point')">+</button>
       </td>
@@ -70,35 +70,33 @@
       </td>  
     </table>
 
-    <hr> <!-- separator -->
+    <hr>   <!-- separator -->
     
     <p id="graphLabel">Connect points</p>
 
     <label class="switch" > <!-- Connect points toggle -->
       <input id="toggle" @click="connectPoints('toggle')" @change="emit" type="checkbox" >
-      <span class="slider"></span>
+      <span class="slider" />
     </label>
+
     <br>
-    <div v-if="!toggle">
-     <label class="switch" > <!-- Connect points toggle -->
-      <input id="connectZero" @click="connectPoints('connectZero')" @change="emit" type="checkbox">
-      <span class="slider"></span>
-    </label>
+    
+    <div v-if="!toggle">   <!-- Toggle for connecting first point to 0 0 -->
+      <label class="switch" >
+        <input id="connectZero" @click="connectPoints('connectZero')" @change="emit" type="checkbox">
+        <span class="slider" />
+      </label>
     </div>
 
-    <hr>
+    <hr>   <!-- separator -->
 
+    <p id="stepLabel">Step</p>
     
-<p id="stepLabel">Step</p>
-    <table id="values">
-    <tr> 
-      <td id="step"><input @change="emit" v-model="step"></td> 
-    </tr>
-    </table>
+    <td id="step"><input @change="emit" v-model="step"></td>   <!-- input for step -->
     
-    <hr>
+    <hr> <!-- separator -->
     
-    <table id="autoscale">
+    <table id="autoscale">   <!-- autoscale button -->
       <td class="buttons">
         <button @click="autoscale">Autoscale</button>
       </td>
@@ -162,7 +160,7 @@ export default {
     setTimeout(this.createColorSelect, 1);
   },
   methods: {
-    clickPlus: function(value) {
+    clickPlus: function(value) { // adding a point or expression
       if(value == "point") {
         this.values[count] = new cell();  
         setTimeout(() => {this.order()}, 10)
@@ -172,7 +170,7 @@ export default {
       }
       this.clear();    
     },
-    clickMinus: function(value) {
+    clickMinus: function(value) { // removing a point or expression
       if(value == "point") {
         if(count > 1) {
           this.values.pop();
@@ -186,7 +184,7 @@ export default {
         }
       }
     },
-    connectPoints: function(select) {
+    connectPoints: function(select) { // sets the variable for connecting points and connecting the graph to 0 0, to be emitted
       var checkBox = document.getElementById(select);
       
       if (checkBox.checked == true){
@@ -204,13 +202,13 @@ export default {
         }
       }
     },
-    emit: function() { //send collected values to graph
+    emit: function() { // send collected values to graph
       this.$emit('newvalue', {values: this.values, X: this.X, Y: this.Y, toggle: this.toggle, connectZero: this.connectZero, graphs: this.graphs, step: this.step})
     },
-    autoscale: function() {
+    autoscale: function() { // emitts autoscale event when clicked
       this.$emit('autoscale')
     },
-    order: function() {
+    order: function() { // orders points by x value
       for(var i = 0; i < this.values.length; i++) {
         if(i != this.values.length - 1 && parseFloat(this.values[i].x) > parseFloat(this.values[i + 1].x)) {
           var prev = this.values[i]
@@ -221,35 +219,34 @@ export default {
         this.values[i].index = this.values.indexOf(this.values[i])
         this.values[i].valueName = "Point " + (this.values[i].index + 1)
 
-       
-          for(var c = 0; c < this.graphs.length; c++) {
-            document.getElementById(this.values[i].index + 'Expr' + c).style.backgroundColor = "white";
-          }
-          if(this.values[i].expr != undefined) {
-            document.getElementById(this.values[i].index + 'Expr' + this.values[i].expr.index).style.backgroundColor = " #f1f1f1";
-          }
+        for(var c = 0; c < this.graphs.length; c++) {
+          document.getElementById(this.values[i].index + 'Expr' + c).style.backgroundColor = "white";
+        }
+        if(this.values[i].expr != undefined) {
+          document.getElementById(this.values[i].index + 'Expr' + this.values[i].expr.index).style.backgroundColor = " #f1f1f1";
+        }
       }
       this.clear();
     },
-    highlight: function(value) {
+    highlight: function(value) { // when clicking on a point to change it's value, the left border gets highlited
       this.clear();
       setTimeout(() => {
         document.getElementById('row' + value.index).style.borderLeft = "2px solid #CD3810";
       }, 2)
     },
-    clear: function() {
+    clear: function() { // resetting the left border 
       setTimeout(() => {
         for(var i = 0; i < this.values.length; i++) {  
           document.getElementById('row' + i).style.borderLeft = "";
         }
       }, 1)
     },
-    changeGraphColor: function(value, color) {
+    changeGraphColor: function(value, color) { // changes the left border of expression table row to selected color, and sets color variable of each expression
       document.getElementById('rowGraph' + value.index).style.borderLeft = "2px solid " + color;
       value.color = color;
       this.changeVisibility(value)
     },
-    changeVisibility(value) {
+    changeVisibility(value) { // hide/show expression graph when clicking on expression name
       if(value.visibility == "visible") {
         value.visibility = "hidden"
       } else {
@@ -257,21 +254,20 @@ export default {
       }
       this.emit();
     },
-    status: function() {
+    status: function() { // point from expression graph
       this.values[count] = new cell()
       this.values[count - 1].x = this.points.point.X
       this.values[count - 1].y = this.points.point.Y
       setTimeout(() => {this.order()}, 10)
-      
     },
-    setExprBind: function(value, visibility) {
+    setExprBind: function(value, visibility) { // show dropdown of expressions to bind
       if(visibility == "show") {
         document.getElementById('dropdown-contentExpr' + value.index).style.display = "inline";  
       } else if(visibility == "hide"){
         document.getElementById('dropdown-contentExpr' + value.index).style.display = "none";
       } 
     },
-    bindExpr: function(graph, value) {
+    bindExpr: function(graph, value) { // binding expression to a point and dropdown select indicator(dim)
       if(document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor == "") {
         document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor = "white"
       }
@@ -281,6 +277,7 @@ export default {
       for(var i = 0; i < this.graphs.length; i++) {
         document.getElementById(value.index + 'Expr' + i).style.backgroundColor = "white";
       }
+
       if(state == "white") {
         document.getElementById(value.index + 'Expr' + graph.index).style.backgroundColor = "#f1f1f1";
         value.expr = graph;
@@ -289,19 +286,19 @@ export default {
         value.expr = undefined;
       }
     },
-    pointExpr: function(value) {
-        if(value.expr != undefined) {
-          var input;
+    pointExpr: function(value) { // changes the y value if expression is bound
+      if(value.expr != undefined) {
+        var input;
 
-          if(value.expr.input.includes("y = ")) {
-            input = value.expr.input.replace("y = ", "")
-          } else if(value.expr.input.includes("y=")) {
-            input = value.expr.input.replace("y=", "")
-          }
-          value.y = eval(input.replace("x", value.x)) 
+        if(value.expr.input.includes("y = ")) {
+          input = value.expr.input.replace("y = ", "")
+        } else if(value.expr.input.includes("y=")) {
+          input = value.expr.input.replace("y=", "")
         }
+        value.y = eval(input.replace("x", value.x)) 
+      }
     },
-    updatePoints: function() {
+    updatePoints: function() { // allows multiple points' y to be updated at once on changing bound expression 
       for(var i = 0; i < this.values.length; i++) {
         this.pointExpr(this.values[i])
       }
@@ -510,7 +507,7 @@ input:checked + .slider:before {
 #step {
   height: 23px;
   width: 60px;
-  margin-top: -20px;
+  margin-top: -22px;
   float: right;
 }
 

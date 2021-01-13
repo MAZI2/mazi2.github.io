@@ -1,8 +1,8 @@
 <template>
   <div class="spacer">
     <svg id="wrapper" @click="createDetailPoint" @wheel.prevent="scrollSet($event)">
-      <line x1="40" y1="490" x2="530" y2="490" stroke="black"/> <!-- X axis line -->
-      <line x1="40" y1="0" x2="40" y2="490" stroke="black"/> <!-- Y axis line -->
+      <line x1="40" y1="490" x2="530" y2="490" stroke="black" /> <!-- X axis line -->
+      <line x1="40" y1="0" x2="40" y2="490" stroke="black" /> <!-- Y axis line -->
 
       <line class="marks" v-for="point in xAxis.points" v-bind:key="point" :x1="point.x + 40" y1="486" :x2="point.x + 40" y2="494" /> <!-- marks on X axis -->
       <line class="marks" v-for="point in yAxis.points" v-bind:key="point" x1="36" :y1="490 -point.x" x2="44" :y2="490 -point.x" /> <!-- marks on Y axis -->
@@ -20,6 +20,7 @@
       <!-- User point details for X-axis -->
       <line class="details" v-for="userPoint in values.values" v-bind:key="userPoint" :x1="userPointX(userPoint) + 40" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" y2="507" :visibility="userPoint.pointNameVisibility" />
       <text class="detailsText" v-for="userPoint in values.values" v-bind:key="userPoint" :x="userPointX(userPoint) + 40" y="522" :visibility="userPoint.pointNameVisibility">{{userPoint.x}}</text>
+      
       <!-- User point details for Y-axis -->
       <line class="details" v-for="userPoint in values.values" v-bind:key="userPoint" x1="30" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" :y2="490 - userPointY(userPoint)" :visibility="userPoint.pointNameVisibility" />
       <text class="detailsText" v-for="userPoint in values.values" v-bind:key="userPoint" x="15" :y="490 - userPointY(userPoint) + 4" :visibility="userPoint.pointNameVisibility">{{userPoint.y}}</text>
@@ -32,12 +33,11 @@
         <line class="graph" v-for="userPoint in values.values" v-bind:key="userPoint" :x1="graphX(userPoint) + 40" :y1="490 - graphY(userPoint)" :x2="userPointX(userPoint) + 40" :y2="490 - userPointY(userPoint)" />
       </svg>
 
-      <circle :cx="detailLive.x + 40" :cy="490 - detailLive.y" r="3" fill="#cc5534" :visibility="detailLive.visibility"/>
+      <!-- Point when mouse on expression graph -->
+      <circle :cx="detailLive.x + 40" :cy="490 - detailLive.y" r="3" fill="#cc5534" :visibility="detailLive.visibility" />
 
       <!-- User point hitbox-->
-      <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red"/>
-
-      
+      <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red" />
     </svg>   
   </div>
   
@@ -62,6 +62,7 @@ export default {
     }    
   },
   mounted() {
+    //listeners for ctrl
     window.addEventListener('keydown', event => {
       if (event.keyCode === 17) { 
         this.scrollModifier("pressed")
@@ -83,7 +84,7 @@ export default {
         start: 0, //start position of drag
         drag: 0, //drag length
         mult: 1, //numbers on axis multiplier
-        step: 1
+        step: 1 //step on axis
       },
       yAxis: {
         points: [],
@@ -98,10 +99,10 @@ export default {
       userPoints: [], //points on graph added by user
       s: "", // selected axis
       dragging: false,
-      autoscalex: false,
-      autoscaley: false,
+      autoscalex: false, //autoscaling x 
+      autoscaley: false, //autoscaling y 
 
-      args: [],
+      args: [], //expression 
       newDetail: false,
       detailLive: {x: 0, y: 0, visibility: "hidden"},
       scroll: {X: 0, Y: 0},
@@ -115,20 +116,19 @@ export default {
   },
   methods: {
     startDrag: function(e) {
-      //determines if pointer position is valid and if on X or Y axis
-      
-        if(e.clientY < $("svg").offset().top + 500 && $("svg").offset().top + 480 < e.clientY) {
-          this.s = this.xAxis; //selected axis
-          this.dragging = true;
-          this.xAxis.start = e.clientX;
-        } else if(e.clientX < $("svg").offset().left + 50 && $("svg").offset().left + 30 < e.clientX) {
-          this.s = this.yAxis;
-          this.dragging = true;
-          this.yAxis.start = e.clientY;
-        }
-      
+      //determines if pointer position is valid and if on X or Y axis   
+      if(e.clientY < $("svg").offset().top + 500 && $("svg").offset().top + 480 < e.clientY) {
+        this.s = this.xAxis; //selected axis
+        this.dragging = true;
+        this.xAxis.start = e.clientX;
+      } else if(e.clientX < $("svg").offset().left + 50 && $("svg").offset().left + 30 < e.clientX) {
+        this.s = this.yAxis;
+        this.dragging = true;
+        this.yAxis.start = e.clientY;
+      }
     },
     stopDrag: function(e) {
+      //sets save point for scaling axis and stops drag
       if(this.dragging) {
           if(this.s == this.xAxis) {
             this.xAxis.posSave = this.xAxis.posSave + this.xAxis.start - e.clientX //saved position
@@ -142,6 +142,7 @@ export default {
       if(this.dragging || this.autoscalex || this.autoscaley) {
         this.update()
 
+        //setting cursor position and which axis is modified if selected x-axis, y-axis, or when autoscaling
         var cursor;
         if(this.autoscalex && !this.autoscaley) {
           cursor = 0;
@@ -155,6 +156,7 @@ export default {
           cursor = e.clientY  
         }
        
+        //setting how line and drag are defined if selected x-axis, y-axis, or when autoscaling
         if(this.s == this.xAxis && !this.autoscalex) {  
           this.s.drag = (this.s.start - cursor)
           this.s.line = 500 - this.s.posSave - this.s.drag;
@@ -166,7 +168,6 @@ export default {
         } else if(this.autoscalex && !this.autoscaley) {
           this.s.line = 500 - this.s.posSave
         }
-       
         
         //adding new point / removing a point
         if(Math.abs(500 - this.s.line) > this.s.points[0].x) {
@@ -213,7 +214,7 @@ export default {
         //set point numbers on axis 
         this.setPointNumbers();
       } else {
-        setTimeout(() => {this.liveDetail(e)}, 10)
+        setTimeout(() => {this.liveDetail(e)}, 10) //update point indicator when hovering over expression graph
       }
     },
     userPointX: function(value) { //translate X set by user to actual x position
@@ -278,13 +279,13 @@ export default {
       }
       return y;
     },
-    autoscale: async function(event, callback, direction) {
-      var pointForX = this.values.values[this.values.values.length - 1]
-      var pointForY = this.values.values[0];
-      var savePosX = this.xAxis.posSave;
+    autoscale: async function(event, callback, direction) { // autoscaling
+      var pointForX = this.values.values[this.values.values.length - 1] //selected point for autoscaling for x is the one with highest x (the last in array, because they get ordered)
+      var pointForY = this.values.values[0]; 
+      var savePosX = this.xAxis.posSave; // saves X and Y axis scaling save for reapplying after autoscale 
       var savePosY = this.yAxis.posSave;
 
-      for(var j = 1; j < this.values.values.length; j++) {
+      for(var j = 1; j < this.values.values.length; j++) { // scrolls through points for scalling for y and searches for the highest y
         if(parseFloat(this.values.values[j].y) > parseFloat(pointForY.y)) {
           pointForY = this.values.values[j]
         }      
@@ -312,6 +313,8 @@ export default {
         } 
         await this.sleep(1);
       }
+
+      // reapply saved X and Y save position after autoscale
       this.xAxis.posSave = savePosX
       this.yAxis.posSave = savePosY
 
@@ -321,6 +324,7 @@ export default {
       this.move(event)
       this.autoscalex = false; 
 
+      // determines whether scaling both axis, each axis separately and in which direction
       if(pointForX.x > this.xAxis.points[this.xAxis.points.length - 2].value && pointForY.y > this.yAxis.points[this.yAxis.points.length - 2].value) {
         this.autoscale(event, "both", "right")
       } else if(pointForX.x > this.xAxis.points[this.xAxis.points.length - 2].value) {
@@ -335,22 +339,20 @@ export default {
         this.autoscale(event, "y", "left")
       }
     },
-    sleep: function(ms) {
+    sleep: function(ms) { // pause for smooth autoscale
       return new Promise(resolve => setTimeout(resolve, ms));
     },
-    draw: function(point) {
+    draw: function(point) { // drawing expression graphs
       if(document.getElementById(point) != null) {
         document.getElementById(point).remove();
       }
       var node = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         
-      
       var origin = { //origin of axes
         x: 40, 
         y: 490
       };
       var input = this.values.graphs[point].input
-      
       
       if(input.includes("x") || /\d/g.test(input)) {
         var inputShort;
@@ -404,8 +406,8 @@ export default {
         }
       }
     },
-    update: function() {
-      setTimeout(() => {
+    update: function() { // removes expression graph 
+      setTimeout(() => { // timeout for avoiding ...is undefined on created()
         for(var g = 0; g < this.values.graphs.length; g++) {
           this.draw(g)
           if(document.getElementById(g + 1) != null) {
@@ -414,17 +416,17 @@ export default {
         }
       }, 1)
     },
-    createDetailPoint: function(e) {
+    createDetailPoint: function(e) { // sets the condition for liveDetail() to create a point from itself
       this.newDetail = true;
       this.liveDetail(e);
     },
-    liveDetail: function(e) {
+    liveDetail: function(e) { // a point as an indicator where the point would be created, when hovering expression graph
       var i = e.clientX - $("svg").offset().left - 40
 
       for(var a = 0; a < this.values.graphs.length; a++) {
         var y = Math.floor(eval(this.args[a]) * this.yAxis.points[0].x / this.yAxis.mult)
 
-        if((490 - e.clientY + $("svg").offset().top) < y + 3 && (490 - e.clientY + $("svg").offset().top) > y - 3 && i > 0) {
+        if((490 - e.clientY + $("svg").offset().top) < y + 3 && (490 - e.clientY + $("svg").offset().top) > y - 3 && i > 0 && this.values.graphs[a].visibility == "visible") {
           this.detailLive.visibility = "visible";
           this.detailLive.x = i;
           this.detailLive.y = y;
@@ -438,24 +440,24 @@ export default {
             }})
           }
         } else {
-          this.detailLive.visibility = "hidden";
+          // hides the indicator when hover is over
+          this.detailLive.visibility = "hidden"; 
+          // for some reason with this approach, the indicator only shows again on the last expression graph, 
+          // but the points can still be created on every graph
         }
       }
       this.newDetail = false;
     },
-    changeStep: function(point, axis) {
-    
-
+    changeStep: function(point, axis) { // sets the selected number to be edited in stepUpdate()
       this.numberValue = point;
       this.s = eval(axis)
 
-       var state;
-        if(this.s == this.xAxis) {
-          state = document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight
-        } else {
-          state = document.getElementById('numberY' + this.yAxis.points.indexOf(point)).style.fontWeight
-        }
-     
+      var state;
+      if(this.s == this.xAxis) {
+        state = document.getElementById('numberX' + this.xAxis.points.indexOf(point)).style.fontWeight
+      } else {
+        state = document.getElementById('numberY' + this.yAxis.points.indexOf(point)).style.fontWeight
+      }
 
       for(var i = 0; i < this.s.points.length; i++) {
         if(this.s == this.xAxis) {
@@ -464,7 +466,6 @@ export default {
           document.getElementById('numberY' + i).style.fontWeight = "500";
         }
       }
-
 
       if(state == "500" || state == "") {
         if(this.s == this.xAxis) {
@@ -480,9 +481,8 @@ export default {
         }
         this.numberValue = undefined;
       }
-
     },
-    stepUpdate: function() {
+    stepUpdate: function() { // sets the new value of selected number and calculates which number the other steps should represent or sets the step of both axis if no number is selected
       if(this.numberValue != undefined) {
         var pointIndex;
 
@@ -502,7 +502,7 @@ export default {
           }
         }
         this.numberValue = undefined;
-      } else {     
+      } else { // if no number is selected 
         this.xAxis.step = this.yAxis.step = this.values.step;
         this.s = this.xAxis
         this.setPointNumbers()
@@ -510,7 +510,7 @@ export default {
         this.setPointNumbers()
       }
     }, 
-    setPointNumbers: function() {
+    setPointNumbers: function() { // sets numbers of each step
       for(var c = 0; c < this.s.points.length; c++) {
         var val = (c + 1) * this.s.mult * this.s.step;
         if(val.toString().includes(".") && val.toString().split(".")[1].length > 2) {
@@ -520,7 +520,7 @@ export default {
         }
       }
     },
-    scrollSet: function(event) { 
+    scrollSet: function(event) { // scaling the axis with scroll using scale save of each axis, autoscales simuntaneously
       var savePosY = this.yAxis.posSave;
       var savePosX = this.xAxis.posSave;
      
@@ -533,6 +533,7 @@ export default {
       this.yAxis.posSave = savePosY + this.scroll.Y
       this.xAxis.posSave = savePosX + this.scroll.X
       
+      //autoscale
       this.autoscalex = true; 
       this.autoscaley = true;
       this.move(event)
@@ -543,9 +544,8 @@ export default {
       this.scroll.X = 0
       this.scroll.Y = 0
     },
-    scrollModifier: function(key) {
+    scrollModifier: function(key) { // sets modifier for scroll when ctrl is pressed
       if(key == "pressed") {
-        console.log("jaaaaaa")
         this.scrollMod = true
       } else if(key == "released") {
         this.scrollMod = false
