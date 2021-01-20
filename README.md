@@ -21,6 +21,9 @@ __Connect__ points.
 __Autoscale__ the axis.  
 Show point __name and exact x, y-axis value__ on mouse-over or toggle with click on the point. 
 
+## To do
+All ordering should just be replaced with array.sort();
+
 ## Project setup
 ```
 yarn install
