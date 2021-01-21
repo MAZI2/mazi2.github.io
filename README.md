@@ -1,7 +1,7 @@
 # Graphing website
 
 ## To do
-All ordering should just be replaced with array.sort();
+Translating X and Y position set by user to X and Y usable by SVG elements works by counting between which two steps on axis the point lies. This, as well as ordering points by X value, should be replaced using array.sort(); and counting the index, that the point was given in array. 
 
 ## Documentation 
 ### New points
