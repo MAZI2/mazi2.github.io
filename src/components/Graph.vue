@@ -4,40 +4,40 @@
       <line x1="40" y1="490" x2="530" y2="490" stroke="black" /> <!-- X axis line -->
       <line x1="40" y1="0" x2="40" y2="490" stroke="black" /> <!-- Y axis line -->
 
-      <line class="marks" v-for="point in xAxis.points" v-bind:key="point" :x1="point.x + 40" y1="486" :x2="point.x + 40" y2="494" /> <!-- marks on X axis -->
-      <line class="marks" v-for="point in yAxis.points" v-bind:key="point" x1="36" :y1="490 -point.x" x2="44" :y2="490 -point.x" /> <!-- marks on Y axis -->
+      <line class="marks" v-for="point in xAxis.points" :key="point" :x1="point.x + 40" y1="486" :x2="point.x + 40" y2="494" /> <!-- marks on X axis -->
+      <line class="marks" v-for="point in yAxis.points" :key="point" x1="36" :y1="490 -point.x" x2="44" :y2="490 -point.x" /> <!-- marks on Y axis -->
 
-      <line class="grid" v-for="point in xAxis.points" v-bind:key="point" :x1="point.x + 40" y1="0" :x2="point.x + 40" y2="490" /> <!-- vertical grid lines -->
-      <line class="grid" v-for="point in yAxis.points" v-bind:key="point" x1="40" :y1="490 -point.x" x2="530" :y2="490 - point.x" /> <!-- horizontal grid lines -->
+      <line class="grid" v-for="point in xAxis.points" :key="point" :x1="point.x + 40" y1="0" :x2="point.x + 40" y2="490" /> <!-- vertical grid lines -->
+      <line class="grid" v-for="point in yAxis.points" :key="point" x1="40" :y1="490 -point.x" x2="530" :y2="490 - point.x" /> <!-- horizontal grid lines -->
 
       
-      <text :id="'numberX' + xAxis.points.indexOf(point)" v-for="point in xAxis.points" v-bind:key="point" :x="point.x + 40" y="509" @click="changeStep(point, 'this.xAxis')">{{point.value}}</text> <!-- numbers below marks on X axis -->
-      <text :id="'numberY' + yAxis.points.indexOf(point)" v-for="point in yAxis.points" v-bind:key="point" x="26" :y="490 - point.x + 5" @click="changeStep(point, 'this.yAxis')">{{point.value}}</text> <!-- numbers beside marks on Y axis -->
+      <text :id="'numberX' + xAxis.points.indexOf(point)" v-for="point in xAxis.points" :key="point" :x="point.x + 40" y="509" @click="changeStep(point, 'this.xAxis')">{{point.value}}</text> <!-- numbers below marks on X axis -->
+      <text :id="'numberY' + yAxis.points.indexOf(point)" v-for="point in yAxis.points" :key="point" x="26" :y="490 - point.x + 5" @click="changeStep(point, 'this.yAxis')">{{point.value}}</text> <!-- numbers beside marks on Y axis -->
       
       <text class="axis" x="290" y="530">{{values.X}}</text> <!-- name of the X axis -->
       <text class="axis" transform="translate(11,245) rotate(-90)">{{values.Y}}</text> <!-- name of the Y axis -->
     
       <!-- User point details for X-axis -->
-      <line class="details" v-for="userPoint in values.values" v-bind:key="userPoint" :x1="userPointX(userPoint) + 40" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" y2="507" :visibility="userPoint.pointNameVisibility" />
-      <text class="detailsText" v-for="userPoint in values.values" v-bind:key="userPoint" :x="userPointX(userPoint) + 40" y="522" :visibility="userPoint.pointNameVisibility">{{userPoint.x}}</text>
+      <line class="details" v-for="userPoint in values.values" :key="userPoint" :x1="userPointX(userPoint) + 40" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" y2="507" :visibility="userPoint.pointNameVisibility" />
+      <text class="detailsText" v-for="userPoint in values.values" :key="userPoint" :x="userPointX(userPoint) + 40" y="522" :visibility="userPoint.pointNameVisibility">{{userPoint.x}}</text>
       
       <!-- User point details for Y-axis -->
-      <line class="details" v-for="userPoint in values.values" v-bind:key="userPoint" x1="30" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" :y2="490 - userPointY(userPoint)" :visibility="userPoint.pointNameVisibility" />
-      <text class="detailsText" v-for="userPoint in values.values" v-bind:key="userPoint" x="15" :y="490 - userPointY(userPoint) + 4" :visibility="userPoint.pointNameVisibility">{{userPoint.y}}</text>
+      <line class="details" v-for="userPoint in values.values" :key="userPoint" x1="30" :y1="490 - userPointY(userPoint)" :x2="userPointX(userPoint)+ 40" :y2="490 - userPointY(userPoint)" :visibility="userPoint.pointNameVisibility" />
+      <text class="detailsText" v-for="userPoint in values.values" :key="userPoint" x="15" :y="490 - userPointY(userPoint) + 4" :visibility="userPoint.pointNameVisibility">{{userPoint.y}}</text>
 
-      <text v-for="userPoint in values.values" v-bind:key="userPoint" :x="userPointX(userPoint) + 40" :y="490 - userPointY(userPoint) - 10" :visibility="userPoint.pointNameVisibility">{{userPoint.valueName}}</text>
+      <text v-for="userPoint in values.values" :key="userPoint" :x="userPointX(userPoint) + 40" :y="490 - userPointY(userPoint) - 10" :visibility="userPoint.pointNameVisibility">{{userPoint.valueName}}</text>
 
       <!-- User points -->
-      <circle class="userPoints" v-for="userPoint in values.values" v-bind:key="userPoint"  :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="3" />
+      <circle class="userPoints" v-for="userPoint in values.values" :key="userPoint"  :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="3" />
       <svg v-if="values.toggle == false">
-        <line class="graph" v-for="userPoint in values.values" v-bind:key="userPoint" :x1="graphX(userPoint) + 40" :y1="490 - graphY(userPoint)" :x2="userPointX(userPoint) + 40" :y2="490 - userPointY(userPoint)" />
+        <line class="graph" v-for="userPoint in values.values" :key="userPoint" :x1="graphX(userPoint) + 40" :y1="490 - graphY(userPoint)" :x2="userPointX(userPoint) + 40" :y2="490 - userPointY(userPoint)" />
       </svg>
 
       <!-- Point when mouse on expression graph -->
       <circle :cx="detailLive.x + 40" :cy="490 - detailLive.y" r="3" fill="#cc5534" :visibility="detailLive.visibility" />
 
       <!-- User point hitbox-->
-      <circle v-for="userPoint in values.values" v-bind:key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red" />
+      <circle v-for="userPoint in values.values" :key="userPoint" @mousedown="visibilityLock(userPoint)" @mouseover="pointNameVisibility(userPoint, 'visible')" @mouseleave="pointNameVisibility(userPoint, 'hidden')" :cx="userPointX(userPoint) + 40" :cy="490 - userPointY(userPoint)" r="10" opacity="0" fill="red" />
     </svg>   
   </div>
   
