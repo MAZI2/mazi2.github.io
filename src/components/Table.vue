@@ -5,12 +5,12 @@
     <hr>   <!-- separator -->
 
     <table id="values">   <!-- table for expressions -->
-      <tr v-for="graph in graphs" v-bind:key="graph">   <!-- row for each expression -->
+      <tr v-for="graph in graphs" :key="graph">   <!-- row for each expression -->
         <th class="graphName" :id="'rowGraph' + graph.index" @click="changeVisibility(graph)">   <!-- cell for name of expression -->
           <input @input="emit" v-model="graph.valueName" placeholder="Expr 1">   <!-- name of expression input -->
             
           <div id="dropdown-content">   <!-- dropdown of colors for expressions -->
-            <tr v-for="color of colors" v-bind:key="color">
+            <tr v-for="color of colors" :key="color">
               <td @click="changeGraphColor(graph, color)">
                 <span class="dot" :style="'background-color:' + color + ';'"></span>
               </td>
@@ -42,13 +42,13 @@
         <td><input @input="emit" v-model="Y" placeholder="Y-axis"></td>
       </tr>
 
-      <tr v-for="value in values" v-bind:key="value.index" @click="highlight(value)">   <!-- row for each point -->
+      <tr v-for="value in values" :key="value.index" @click="highlight(value)">   <!-- row for each point -->
         <th :id="'row' + value.index" @mouseover="setExprBind(value, 'show')" @mouseleave="setExprBind(value, 'hide')">   <!-- cell for point name -->
           <input @blur="clear" @input="emit" v-model="value.valueName" placeholder="Point 1">   <!-- point name input -->
           
           <!-- Dropdown of expressions to bind -->
           <div class="dropdown-contentExpr" :id="'dropdown-contentExpr' + value.index" style="display: none" @mouseover="setExprBind(value, 'show')" @mouseleave="setExprBind(value, 'hide')">  
-            <tr v-for="graph in graphs" v-bind:key="graph.index">
+            <tr v-for="graph in graphs" :key="graph.index">
               <td :id="value.index + 'Expr' + graph.index" @click="bindExpr(graph, value)">
                 <span class="dotExpr">{{graph.valueName}}</span>
               </td>
