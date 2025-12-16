@@ -13,16 +13,21 @@ function randomConnections(ids: number[], min: number, max: number) {
   return shuffled.slice(0, n)
 }
 
+function clamp(v: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, v))
+}
+
+
 export class Space {
   restDistance = 160
   stiffness = 0.05
-  repulsionDistance = 40
-  repulsionStrength = 220
+  repulsionDistance = 200
+  repulsionStrength = 520
   propagationDelay = 0.2
 
-  applyForces(neurons: Neuron[], dt: number, forceScale = 1) {
+  applyForces(neurons: Neuron[], dt: number, exclusionZones: ExclusionZone[] = [], viewport?: Viewport) {
 
-    const localDistance = 120
+    const localDistance = 220
     // Update neighbourhoods and connections
     for (const neuron of neurons) {
       const prevNeighbourIds = new Set(neuron.neighbourIds)
@@ -67,6 +72,48 @@ export class Space {
     b.applyForce(force.clone().scale(-1))
   }
 }
+
+for (const neuron of neurons) {
+  for (const zone of exclusionZones) {
+    const pad = zone.padding ?? 60
+
+    // Zone position relative to viewport
+    const left = zone.x + viewport.offsetX - pad
+    const right = zone.x + viewport.offsetX + zone.width + pad
+    const top = zone.y + viewport.offsetY - pad
+    const bottom = zone.y + viewport.offsetY + zone.height + pad
+
+    if (
+      neuron.position.x >= left &&
+      neuron.position.x <= right &&
+      neuron.position.y >= top &&
+      neuron.position.y <= bottom
+    ) {
+      // nearest horizontal edge
+      let dx = 0
+      if (neuron.position.x - left < right - neuron.position.x) dx = neuron.position.x - left
+      else dx = neuron.position.x - right
+
+      // nearest vertical edge
+      let dy = 0
+      if (neuron.position.y - top < bottom - neuron.position.y) dy = neuron.position.y - top
+      else dy = neuron.position.y - bottom
+
+      // flip direction to point outward
+      dx = -dx
+      dy = -dy
+
+      const dist = Math.sqrt(dx*dx + dy*dy) || 0.001
+      const maxStrength = 50
+      const strength = Math.min(maxStrength, 100 / dist)
+
+      const zoneForceMultiplier = 3
+      const force = new Vector2((dx / dist) * strength * zoneForceMultiplier, (dy / dist) * strength * zoneForceMultiplier)
+      neuron.applyForce(force)
+    }
+  }
+}
+
 
 
     // Firing propagation with cycle prevention

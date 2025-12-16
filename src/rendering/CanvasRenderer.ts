@@ -8,8 +8,37 @@ export class CanvasRenderer {
     this.ctx = canvas.getContext('2d')!
   }
 
-  draw(sim: Simulation, offset: Vector2, viewportWidth: number, viewportHeight: number) {
+  draw(
+      sim: Simulation,
+      offset: Vector2,
+      viewportWidth: number,
+      viewportHeight: number
+    ) {
+
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    // DEBUG: draw exclusion zones
+for (const zone of sim.exclusionZones) {
+  const x = zone.x - offset.x
+  const y = zone.y - offset.y
+
+  this.ctx.save()
+  this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)'
+  this.ctx.lineWidth = 2
+  this.ctx.setLineDash([6, 6])
+  this.ctx.strokeRect(x, y, zone.width, zone.height)
+
+  if (zone.padding) {
+    this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.25)'
+    this.ctx.strokeRect(
+      x - zone.padding,
+      y - zone.padding,
+      zone.width + zone.padding * 2,
+      zone.height + zone.padding * 2
+    )
+  }
+
+  this.ctx.restore()
+}
 
     // --- 1️⃣ Draw all connections first ---
     for (const neuron of sim.neurons) {
@@ -59,13 +88,23 @@ export class CanvasRenderer {
       if (x + neuron.radius < 0 || x - neuron.radius > viewportWidth) continue
       if (y + neuron.radius < 0 || y - neuron.radius > viewportHeight) continue
 
+      // Draw main neuron
       this.ctx.beginPath()
       this.ctx.arc(x, y, neuron.radius, 0, Math.PI * 2)
-      this.ctx.fillStyle = neuron.firing ? '#000000' : neuron.color
+      this.ctx.fillStyle = neuron.color
       this.ctx.fill()
       this.ctx.lineWidth = 2
       this.ctx.strokeStyle = neuron.outline
       this.ctx.stroke()
+
+      // Draw firing indicator as smaller black circle
+      if (neuron.firing) {
+        const indicatorRadius = neuron.radius * 0.4 // adjust size
+        this.ctx.beginPath()
+        this.ctx.arc(x, y, indicatorRadius, 0, Math.PI * 2)
+        this.ctx.fillStyle = '#000000'
+        this.ctx.fill()
+      }
     }
   }
 }

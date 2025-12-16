@@ -30,7 +30,7 @@ body {
   min-height: 100vh;
 }
 
-p {
+span, p {
   font-weight: 500;
 }
 
@@ -67,6 +67,9 @@ button:focus-visible {
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  position: relative;
+  min-height: 100vh;
+
 }
 
 @media (prefers-color-scheme: light) {

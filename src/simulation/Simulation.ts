@@ -2,6 +2,7 @@ import { Neuron } from './Neuron'
 import { Space } from './Space'
 import { Viewport } from '../vue/Viewport'
 import { Vector2 } from './Vector2'
+import type { ExclusionZone } from './ExclusionZone'
 
 const TILE_SIZE = 400
 
@@ -10,6 +11,15 @@ export class Simulation {
   tiles: Map<string, Neuron[]> = new Map()
   space = new Space()
   initialized = false
+  exclusionZones: ExclusionZone[] = [
+    {
+      x: 300,
+      y: 200,
+      width: 200,
+      height: 150,
+      padding: 10
+    }
+  ]
 
   constructor() {}
 
@@ -60,15 +70,33 @@ export class Simulation {
     }
   }
 
-  update(dt: number) {
-    const forceScale = this.initialized ? 1 : 0.1
-    this.space.applyForces(this.neurons, dt, forceScale)
+  update(dt: number, viewport?: Viewport) {
+    this.space.applyForces(
+      this.neurons,
+      dt,
+      this.exclusionZones,
+      viewport
+    )
 
     for (const neuron of this.neurons) {
-      neuron.update(dt, this.neurons)
-    }
+      // Random firing: small chance each frame
+      const fireProbabilityPerSecond = 0.002; // 2% per second
+      if (!neuron.firing && Math.random() < fireProbabilityPerSecond * dt) {
+        neuron.firing = true;
+        neuron.firingTimer = 0;
+      }
 
-    if (!this.initialized) this.initialized = true
+      // Update firing timer
+      if (neuron.firing) {
+        neuron.firingTimer += dt;
+        if (neuron.firingTimer > neuron.firingDuration) {
+          neuron.firing = false;
+          neuron.firingTimer = 0;
+        }
+      }
+
+      neuron.update(dt, this.neurons); // your existing neuron update logic
+    }
   }
 }
 
