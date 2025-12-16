@@ -17,6 +17,7 @@ export class CanvasRenderer {
 
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     // DEBUG: draw exclusion zones
+    /*
 for (const zone of sim.exclusionZones) {
   const x = zone.x - offset.x
   const y = zone.y - offset.y
@@ -39,6 +40,7 @@ for (const zone of sim.exclusionZones) {
 
   this.ctx.restore()
 }
+*/
 
     // --- 1️⃣ Draw all connections first ---
     for (const neuron of sim.neurons) {

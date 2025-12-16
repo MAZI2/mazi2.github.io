@@ -50,8 +50,8 @@ props: {
 
     function updateExclusionZone() {
       if (!props.getExclusionZone) return
-      const zone = props.getExclusionZone()
-      if (zone) simulation.exclusionZones = [zone]
+      const zones = props.getExclusionZone()
+      if (zones) simulation.exclusionZones = zones
     }
 
     onMounted(() => {
