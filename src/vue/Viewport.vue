@@ -9,7 +9,7 @@ import { CanvasRenderer } from '../rendering/CanvasRenderer'
 import { Viewport } from './Viewport'
 import { Neuron } from '../simulation/Neuron'
 
-const TILE_SIZE = 200
+const TILE_SIZE = 400
 
 export default defineComponent({
   setup() {

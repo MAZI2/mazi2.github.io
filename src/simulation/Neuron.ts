@@ -6,21 +6,21 @@ export class Neuron {
   id: number
   position: Vector2
   velocity = new Vector2()
-  radius = 12
+  radius = 16
   mass = 1
   isDragged = false
 
   firing = false
   firingTimer = 0
   firingRate = 1
-  pulseTime = 0.5
+  pulseTime = 0.1
   propagatedFiring = false
   propagationTimer = 0
   propagationDelay = 0.2
   receivedSignals: Set<number> = new Set()
 
-  color: string = '#74b9ff'
-  outline: string = '#2d3436'
+  color: string = '#ffffff'
+  outline: string = '#000000'
 
   neighbourIds: Set<number> = new Set()
   connections: number[] = []
@@ -42,6 +42,7 @@ export class Neuron {
     }
 
     // Dragged firing
+    /*
     if (this.isDragged) {
       this.firingTimer += dt
       if (!this.firing && this.firingTimer >= this.firingRate) {
@@ -55,6 +56,9 @@ export class Neuron {
         this.firingTimer = 0
       }
     }
+    */
+
+
 
     // Propagated firing
     if (this.propagatedFiring) {

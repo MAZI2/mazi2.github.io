@@ -14,10 +14,10 @@ function randomConnections(ids: number[], min: number, max: number) {
 }
 
 export class Space {
-  restDistance = 80
-  stiffness = 0.01
+  restDistance = 160
+  stiffness = 0.05
   repulsionDistance = 40
-  repulsionStrength = 20
+  repulsionStrength = 220
   propagationDelay = 0.2
 
   applyForces(neurons: Neuron[], dt: number, forceScale = 1) {

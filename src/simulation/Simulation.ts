@@ -3,7 +3,7 @@ import { Space } from './Space'
 import { Viewport } from '../vue/Viewport'
 import { Vector2 } from './Vector2'
 
-const TILE_SIZE = 200
+const TILE_SIZE = 400
 
 export class Simulation {
   neurons: Neuron[] = []
