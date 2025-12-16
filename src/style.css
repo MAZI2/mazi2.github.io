@@ -69,8 +69,6 @@ button:focus-visible {
   margin: 0 auto;
   padding: 2rem;
   position: relative;
-  min-height: 100vh;
-
 }
 
 @media (prefers-color-scheme: light) {

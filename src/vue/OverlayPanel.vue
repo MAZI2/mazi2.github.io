@@ -17,7 +17,6 @@
     </div>
 
     <div class="resize-handle"
-     :style="{ right: hasScrollbar ? '20px' : '10px' }"
      @mousedown.prevent="startResize">
   <i class="fa fa-expand" aria-hidden="true"></i>
 </div>
@@ -122,7 +121,7 @@ function toggleMaximize() {
 <style scoped>
 .overlay-panel {
   position: fixed;
-  z-index: 9999;
+  z-index: 10999;
   background: #ffffff;
   border: 2px solid black;
   border-radius: 10px;
@@ -151,11 +150,10 @@ function toggleMaximize() {
 }
 
 .content {
+    overflow-x: auto;
   flex: 1;
-  overflow-y: scroll; /* force scrollbar always visible */
-  overflow-x: hidden;
   color: black;
-  margin: 20px;
+  margin-bottom: 20px;
   min-height: 50px;
 
   /* Firefox */

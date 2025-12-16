@@ -1,8 +1,8 @@
 <template>
   <nav class="navbar">
       <div class="content">
-          <a @click="$emit('open-panel', '/route1')">Section 1</a>
-          <a @click="$emit('open-panel', '/route2')">Section 2</a>
+          <a @click="$emit('open-panel', '/about')">About me</a>
+          <a @click="$emit('open-panel', '/portfolio')">Section 2</a>
           <a @click="$emit('open-panel', '/route3')">Section 3</a>
       </div>
   </nav>
@@ -37,12 +37,13 @@ export default defineComponent({
   z-index: 10;        /* Make sure it floats above canvas */
   text-align: center;
 
+
   .content {
   padding: 6px 12px;
       width: 100%;
       display: flex;
       flex-direction: row;
-      gap: 10px;
+      gap: 15px;
       align-items: flex-start;
   }
 }
