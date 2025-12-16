@@ -2,7 +2,7 @@
   <nav class="navbar">
       <div class="content">
           <a @click="$emit('open-panel', '/about')">About me</a>
-          <a @click="$emit('open-panel', '/portfolio')">Section 2</a>
+          <a @click="$emit('open-panel', '/portfolio')">Portfolio</a>
           <a @click="$emit('open-panel', '/route3')">Section 3</a>
       </div>
   </nav>

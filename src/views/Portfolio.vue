@@ -1,40 +1,78 @@
 <template>
+   <div class="portfolio-top">
+  <div class="separator"></div>
+  <div class="portfolio-menu">
+    <i
+      :class="viewGrid ? 'fa fa-th-large' : 'fa fa-list'"
+      aria-hidden="true"
+      @click="toggleView"
+    ></i>
+  </div>
+</div>
   <div>
-    <div class="portfolio-menu">
-      <i :class="viewGrid ? 'fa fa-th-large' : 'fa fa-list'" @click="toggleView"></i>
-    </div>
 
+       <span class="header"><b>Portfolio</b></span>
     <div :class="['projects', { list: !viewGrid }]">
-      <div v-for="project in projects" :key="project.title" class="project-card">
-        <!-- Clicking the image opens the full content in a panel -->
-        <img :src="project.image" alt="" @click="openProjectPanel(project)" />
-        
-        <h3>{{ project.title }}</h3>
-        <p v-html="viewGrid ? project.short : project.long"></p>
+      <div
+        v-for="project in projects"
+        :key="project.title"
+        class="project-card"
+      >
+        <!-- GRID VIEW -->
+        <template v-if="viewGrid">
+          <img
+            class="project-image"
+            :src="project.image"
+            alt=""
+            @click="openProjectPanel(project)"
+          />
+          <h3>{{ project.title }}</h3>
+          <p class="short">{{ project.short }}</p>
+        </template>
 
-        <!-- Only show Markdown content in grid view if desired -->
-        <div v-if="viewGrid" class="content" v-html="renderMarkdown(project.content)" @click="handleLinkClick"></div>
+        <!-- LIST VIEW -->
+        <template v-else>
+            <span class="title">
+                <span class="left">
+                    <i class="fa fa-play" aria-hidden="true" @click="openProjectPanel(project)"></i>
+                    <b>{{ project.title }}</b>
+                </span>
+                <span class="date">{{ project.date }}</span>
+            </span>
+
+            <span class="long">{{ project.long }}</span>
+
+          <div class="list-gallery">
+            <img
+              v-for="(img, idx) in project.gallery"
+              :key="idx"
+              :src="img"
+              class="list-thumb"
+              @click="openProjectPanel(project)"
+            />
+          </div>
+        </template>
       </div>
     </div>
   </div>
 </template>
-  
+
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { marked } from 'marked'
 
-import IFrameComponent from '../vue/components/IFrameComponent.vue'
-
 const emit = defineEmits<{
-  (e: 'open-panel', url: string): void
+  (e: 'open-panel', payload: { route: string; props?: any }): void
 }>()
 
 const viewGrid = ref(true)
 const toggleView = () => (viewGrid.value = !viewGrid.value)
 
-// Load markdown projects
-const projectFiles = import.meta.glob('../projects/*.md', { eager: true, as: 'raw' })
+const projectFiles = import.meta.glob('../projects/*.md', {
+  eager: true,
+  as: 'raw'
+})
 
 interface Project {
   title: string
@@ -43,67 +81,170 @@ interface Project {
   long: string
   image: string
   content: string
+  gallery: string[]
 }
 
-const projects = ref<Project[]>(Object.entries(projectFiles).map(([path, raw]: [string, string]) => {
-  const frontmatterMatch = raw.match(/---\n([\s\S]*?)\n---/)
-  let metadata: any = {}
-  if (frontmatterMatch) {
-    const yaml = frontmatterMatch[1]
-    yaml.split('\n').forEach(line => {
-      const [key, ...rest] = line.split(':')
-      metadata[key.trim()] = rest.join(':').trim()
-    })
-  }
-  const content = raw.replace(/---[\s\S]*?---/, '').trim()
-  return { ...metadata, content }
-}))
-
-// Render markdown normally
-const renderMarkdown = (md: string) => marked(md)
-
-// Delegate link clicks in markdown
-const handleLinkClick = (e: MouseEvent) => {
-  const target = e.target as HTMLElement
-  if (target.tagName === 'A') {
-    e.preventDefault() // prevent navigation
-    const href = (target as HTMLAnchorElement).href
-
-    // Emit panel with OpenExternal
-    emit('open-panel', { route: 'openExternal', props: { url: href } })
-  }
+const extractImages = (md: string) => {
+  const html = marked(md)
+  const div = document.createElement('div')
+  div.innerHTML = html
+  return Array.from(div.querySelectorAll('img')).map(img => img.src)
 }
 
+const projects = ref<Project[]>(
+  Object.entries(projectFiles).map(([_, raw]) => {
+    const frontmatterMatch = raw.match(/---\n([\s\S]*?)\n---/)
+    const metadata: any = {}
 
-// Open a panel with full project content
+    if (frontmatterMatch) {
+      frontmatterMatch[1].split('\n').forEach(line => {
+        const [key, ...rest] = line.split(':')
+        metadata[key.trim()] = rest.join(':').trim()
+      })
+    }
+
+    const content = raw.replace(/---[\s\S]*?---/, '').trim()
+const contentImages = extractImages(content)
+
+// header image first, then up to 3 content images
+
+const gallery = [
+  ...(metadata.image ? [metadata.image] : []),
+  ...contentImages.filter(img => img !== metadata.image)
+].slice(0, 4)
+
+return {
+  ...metadata,
+  content,
+  gallery
+}
+
+    
+  })
+)
+
 const openProjectPanel = (project: Project) => {
   emit('open-panel', {
-    route: 'openProject', // tells parent to use ProjectPanel
-    props: { project }     // pass the project object
+    route: 'openProject',
+    props: { project }
   })
 }
-
 </script>
 
 
 <style scoped>
+.portfolio-top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+}
+
+/* Optional: subtle elevation */
+.portfolio-top::after {
+  content: '';
+  display: block;
+  background: #ffffff;
+}
+
+
+.separator {
+    height: 2px;
+    margin: 0 10px;
+    background: black;
+}
+.portfolio-menu {
+    padding: 5px 12px;
+    display: flex;
+    justify-content: flex-end; /* push content to the right */
+    align-items: flex-start;
+}
+
+.header {
+    padding: 20px;
+}
+
 .projects {
   display: grid;
+  padding: 0 20px;
+  margin-top: 20px;
   gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
+
+
+
+/* CARD BASE */
+.project-card {
+  background: #fff;
+}
+
+/* GRID VIEW */
+.project-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.short {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* LIST VIEW */
+.projects.list {
+  grid-template-columns: 1fr;
+
+  .title {
+      margin: 0;
+      padding: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        i {
+            cursor: pointer;
+        }
+    }
+
+    .date {
+        font-size: 14px;
+    }
+  }
+}
+
 .projects.list .project-card {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
 }
-.project-card {
-  border: 1px solid #ccc;
-  padding: 12px;
-  border-radius: 8px;
+
+.long {
+    padding: 0;
+    margin: 0;
 }
-.projects.list .project-card img {
+
+/* IMAGE STRIP */
+.list-gallery {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.list-thumb {
   width: 150px;
-  height: auto;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+  cursor: pointer;
 }
 </style>
+
 

@@ -74,7 +74,7 @@ export default {
 
 
 function resolvePanelComponent(panel: { route: string; props?: any }) {
-  // If panel.route is openExternal, just return the component with its props
+  // Open external link
   if (panel.route === 'openExternal' && panel.props?.url) {
     return {
       component: OpenExternal,
@@ -89,6 +89,7 @@ function resolvePanelComponent(panel: { route: string; props?: any }) {
     props: panel.props || {}
   }
 }
+
 
     
     
