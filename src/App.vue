@@ -24,7 +24,7 @@
 </template>
 
 <script lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Controls from './vue/Controls.vue'
 import ViewportComponent from './vue/Viewport.vue'
 import TitleHeader from './vue/Header.vue'
@@ -56,19 +56,40 @@ export default {
       '/route3': RouteThree
     }
 
+    const OFFSET_DISTANCE = 20
+
     const openPanel = (route: string) => {
       // Remove any existing panel with this route
       panels.value = panels.value.filter(p => p.route !== route)
 
-      // Add the new panel
+      const width = Math.min(window.innerWidth * 0.8, 700)
+      const height = 300
+
+      const baseX = (window.innerWidth - width) / 2
+      const baseY = 200
+
+      let x = baseX
+      let y = baseY
+
+      // Only offset if at least one panel already exists
+      if (panels.value.length > 0) {
+        const angle = Math.random() * Math.PI * 2
+        x += Math.cos(angle) * OFFSET_DISTANCE
+        y += Math.sin(angle) * OFFSET_DISTANCE
+      }
+
       panels.value.push({
         id: Date.now(),
         route,
-        position: { x: 100, y: 100 },
-        size: { width: 300, height: 300 },
+        position: { x, y },
+        size: { width, height },
         maximized: false
       })
     }
+
+    onMounted(() => {
+      openPanel('/route1') // or whatever your default route is
+    })
 
     function updateSize(id: number, size: { width: number; height: number }) {
       const p = panels.value.find(p => p.id === id)
@@ -131,8 +152,8 @@ export default {
         zones.push({
           x: panel.position.x + 100, // keep the subtraction from original code
           y: panel.position.y,
-          width: 200, // you can adjust this if you have actual panel width
-          height: 300, // match OverlayPanel height
+          width: panel.size.width-200, // you can adjust this if you have actual panel width
+          height: panel.size.height, // match OverlayPanel height
           padding: 20
         })
       })

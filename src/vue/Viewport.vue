@@ -74,9 +74,37 @@ props: {
 
       // Handle scrolling (vertical only)
       window.addEventListener('wheel', e => {
+        if (!props.getExclusionZone) return
+
+        const zones = simulation.exclusionZones
+
+        const mouseX = e.clientX
+        const mouseY = e.clientY
+
+        let blockScroll = false
+
+        zones.forEach((zone, index) => {
+          // Adjust first item (header)
+          if (index != 0) {
+            // For panels (from second onward), block scroll if mouse is inside zone
+            if (
+              mouseX >= zone.x - 100 &&
+              mouseX <= zone.x + zone.width + 200 &&
+              mouseY >= zone.y &&
+              mouseY <= zone.y + zone.height
+            ) {
+              blockScroll = true
+            }
+          }
+        })
+
+        if (blockScroll) return // ignore scroll over panels
+
+        // Handle scroll for canvas
         e.preventDefault()
         viewport.onScroll(e.deltaY)
       }, { passive: false })
+
 
       // Dragging neurons
       canvas.value.addEventListener('mousedown', e => {

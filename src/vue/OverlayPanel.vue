@@ -1,26 +1,31 @@
 <template>
   <div
     class="overlay-panel"
+    @mouseenter="onMouseEnter"
+    @mouseleave="onMouseLeave"
     :style="panelStyle"
   >
     <div class="panel-header" @mousedown="startDrag">
-      <span>Panel</span>
-      <div>
-        <button @click.stop="toggleMaximize">{{ props.maximized ? 'Minimize' : 'Maximize' }}</button>
-        <button @click="$emit('close')">X</button>
+      <div class="menu">
+        <i class="menu-item fa fa-window-close-o" @click="$emit('close')" aria-hidden="true"></i>
+        <i :class="maximized ? 'menu-item fa fa-window-minimize' : 'menu-item fa fa-window-maximize'" @click="toggleMaximize" aria-hidden="true"></i>
       </div>
     </div>
 
-    <div class="content">
+    <div class="content" ref="contentRef">
       <slot />
     </div>
 
-    <div class="resize-handle" @mousedown.prevent="startResize"></div>
+    <div class="resize-handle"
+     :style="{ right: hasScrollbar ? '20px' : '10px' }"
+     @mousedown.prevent="startResize">
+  <i class="fa fa-expand" aria-hidden="true"></i>
+</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, computed } from 'vue'
+import { defineProps, defineEmits, computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 
 const props = defineProps<{
   position: { x: number; y: number }
@@ -35,6 +40,19 @@ const emit = defineEmits<{
   (e: 'minimize'): void
   (e: 'close'): void
 }>()
+
+const isHovered = ref(false)
+
+
+function onMouseEnter() {
+  isHovered.value = true
+}
+
+function onMouseLeave() {
+  isHovered.value = false
+}
+
+defineExpose({ isHovered })
 
 // Apply both position AND size
 const panelStyle = computed(() => ({
@@ -105,9 +123,9 @@ function toggleMaximize() {
 .overlay-panel {
   position: fixed;
   z-index: 9999;
-  background: #eee;
-  border: 1px solid #333;
-  border-radius: 8px;
+  background: #ffffff;
+  border: 2px solid black;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   user-select: none;
@@ -117,25 +135,48 @@ function toggleMaximize() {
 .panel-header {
   display: flex;
   justify-content: space-between;
-  background: #ccc;
-  padding: 4px 8px;
+  background: #ffffff;
+  color: black;
+  padding: 6px 12px;
   cursor: grab;
+
+  .menu {
+    display: flex;
+    gap: 8px;
+
+    .menu-item {
+      cursor: pointer;
+    }
+  }
 }
 
 .content {
   flex: 1;
-  padding: 8px;
-  overflow: auto;
+  overflow-y: scroll; /* force scrollbar always visible */
+  overflow-x: hidden;
+  color: black;
+  margin: 20px;
   min-height: 50px;
+
+  /* Firefox */
+  scrollbar-width: thick;
+  scrollbar-color: black white;
 }
+
+
 
 .resize-handle {
   width: 12px;
   height: 12px;
-  background: #888;
   position: absolute;
-  right: 0;
-  bottom: 0;
+  right: 10px;
+  bottom: 15px;
   cursor: se-resize;
+  color: black;
+
+  i {
+    display: inline-block; /* needed for transform */
+    transform: scaleX(-1);
+  }
 }
 </style>
