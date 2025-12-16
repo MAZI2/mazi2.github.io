@@ -12,7 +12,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import Logo from '@/assets/Logo.svg'
 
 export default defineComponent({
   name: 'Header',
