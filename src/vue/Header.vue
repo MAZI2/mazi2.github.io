@@ -1,7 +1,7 @@
 <template>
   <div class="header">
     <div class="content">
-        <img class="logo" src="/Logo.svg"/>
+        <img class="logo" src="/public/Logo.svg"/>
         <div class="text">
             <span class="title">Matjaž Pogačnik</span>
             <span class="email">matjazpogacnik5@gmail.com</span>
