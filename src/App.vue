@@ -1,52 +1,147 @@
 <template>
   <Controls />
   <Viewport :get-exclusion-zone="getExclusionZone" />
-
   <TitleHeader ref="headerRef" />
-  <OverlayPanel ref="panelRef">
-    <h2>Neuron Simulation Controls</h2>
-    <p>Drag neurons or scroll to explore the network.</p>
-    <button @click="resetSimulation">Reset</button>
-  </OverlayPanel>
+  <NavBar @open-panel="openPanel" />
+
+  <!-- Render all panels -->
+  <OverlayPanel
+  v-for="panel in panels"
+  :key="panel.id"
+  :position="panel.position"
+  :size="panel.size"
+  :maximized="panel.maximized"
+  @drag="updatePosition(panel.id, $event)"
+  @resize="updateSize(panel.id, $event)"
+  @maximize="maximizePanel(panel.id)"
+  @minimize="minimizePanel(panel.id)"
+  @close="closePanel(panel.id)"
+>
+  <!-- Dynamically render the component -->
+  <component :is="routeComponents[panel.route]" />
+</OverlayPanel>
+
 </template>
 
 <script lang="ts">
-import { ref, onMounted } from 'vue'
-import ViewportComponent, { Viewport } from './vue/Viewport.vue' // import class
+import { ref } from 'vue'
 import Controls from './vue/Controls.vue'
-
+import ViewportComponent from './vue/Viewport.vue'
 import TitleHeader from './vue/Header.vue'
+import NavBar from './vue/Nav.vue'
 import OverlayPanel from './vue/OverlayPanel.vue'
 
+import RouteOne from './views/RouteOne.vue'
+import RouteTwo from './views/RouteTwo.vue'
+import RouteThree from './views/RouteThree.vue'
+
 export default {
-  components: { Viewport: ViewportComponent, OverlayPanel, Controls, TitleHeader },
+  components: { Controls, Viewport: ViewportComponent, TitleHeader, NavBar, OverlayPanel },
   setup() {
+    const panels = ref<
+      Array<{
+        id: number
+        route: string
+        position: { x: number; y: number }
+        size: { width: number; height: number }
+        prevPosition?: { x: number; y: number }
+        prevSize?: { width: number; height: number }
+        maximized?: boolean
+      }>
+    >([])
+
+    const routeComponents: Record<string, any> = {
+      '/route1': RouteOne,
+      '/route2': RouteTwo,
+      '/route3': RouteThree
+    }
+
+    const openPanel = (route: string) => {
+      // Remove any existing panel with this route
+      panels.value = panels.value.filter(p => p.route !== route)
+
+      // Add the new panel
+      panels.value.push({
+        id: Date.now(),
+        route,
+        position: { x: 100, y: 100 },
+        size: { width: 300, height: 300 },
+        maximized: false
+      })
+    }
+
+    function updateSize(id: number, size: { width: number; height: number }) {
+      const p = panels.value.find(p => p.id === id)
+      if (p) p.size = size
+    }
+
+
+    function maximizePanel(id: number) {
+      const p = panels.value.find(p => p.id === id)
+      if (!p) return
+      if (!p.maximized) {
+        p.prevPosition = { ...p.position }
+        p.prevSize = { ...p.size }
+        p.position = { x: 0, y: 0 }
+        p.size = { width: window.innerWidth, height: window.innerHeight }
+        p.maximized = true
+      }
+    }
+
+    function minimizePanel(id: number) {
+      const p = panels.value.find(p => p.id === id)
+      if (!p || !p.prevPosition || !p.prevSize) return
+      p.position = { ...p.prevPosition }
+      p.size = { ...p.prevSize }
+      p.maximized = false
+    }
+
+
+    const closePanel = (id: number) => {
+      panels.value = panels.value.filter(p => p.id !== id)
+    }
+
+    const updatePosition = (id: number, pos: { x: number; y: number }) => {
+      const panel = panels.value.find(p => p.id === id)
+      if (panel) panel.position = pos
+    }
+
     const headerRef = ref<InstanceType<typeof TitleHeader> | null>(null)
     const panelRef = ref<InstanceType<typeof OverlayPanel> | null>(null)
 
     function getExclusionZone() {
-      if (!panelRef.value?.$el || !headerRef.value?.$el) return null
-      const rect = panelRef.value.$el.getBoundingClientRect()
-      const rect2 = headerRef.value.$el.getBoundingClientRect()
+      const zones: Array<{ x: number; y: number; width: number; height: number; padding: number }> = []
 
-      return [{
-        x: rect.left+100,
-        y: rect.top,
-        width: rect.width-200,
-        height: rect.height,
-        padding: 20
-      },{
-        x: rect2.left,
-        y: rect2.top,
-        width: rect2.width,
-        height: rect2.height,
-        padding: 20
-      }]
+      // Add header
+      if (headerRef.value?.$el) {
+        const rect = headerRef.value.$el.getBoundingClientRect()
+        zones.push({
+          x: rect.left,
+          y: rect.top,
+          width: rect.width,
+          height: rect.height,
+          padding: 20
+        })
+      }
+
+      // Add all panels
+      panels.value.forEach(panel => {
+        // Attempt to get actual DOM element if needed
+        // If panels are floating and don't have refs, we can just use position + estimated width/height
+        zones.push({
+          x: panel.position.x + 100, // keep the subtraction from original code
+          y: panel.position.y,
+          width: 200, // you can adjust this if you have actual panel width
+          height: 300, // match OverlayPanel height
+          padding: 20
+        })
+      })
+
+      return zones
     }
 
-    const resetSimulation = () => console.log('Reset clicked!')
 
-    return { panelRef, headerRef, getExclusionZone, resetSimulation }
+    return { panels, openPanel, closePanel, updatePosition, headerRef, panelRef, getExclusionZone, minimizePanel, maximizePanel, updateSize, routeComponents }
   }
 }
 </script>
