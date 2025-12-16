@@ -1,7 +1,6 @@
 import { Neuron } from './Neuron'
 import { Vector2 } from './Vector2'
 
-// Helper functions
 function setsEqual(a: Set<any>, b: Set<any>) {
   if (a.size !== b.size) return false
   for (const val of a) if (!b.has(val)) return false
@@ -16,13 +15,14 @@ function randomConnections(ids: number[], min: number, max: number) {
 
 export class Space {
   restDistance = 80
-  neighbourhoodDistance = 100
-  stiffness = 0.05
+  stiffness = 0.01
   repulsionDistance = 40
-  repulsionStrength = 120
-  propagationDelay = 0.2 // seconds
+  repulsionStrength = 20
+  propagationDelay = 0.2
 
-  applyForces(neurons: Neuron[], dt: number) {
+  applyForces(neurons: Neuron[], dt: number, forceScale = 1) {
+
+    const localDistance = 120
     // Update neighbourhoods and connections
     for (const neuron of neurons) {
       const prevNeighbourIds = new Set(neuron.neighbourIds)
@@ -31,45 +31,51 @@ export class Space {
       for (const other of neurons) {
         if (neuron.id === other.id) continue
         const dist = neuron.position.clone().sub(other.position).length()
-        if (dist < this.neighbourhoodDistance) neuron.neighbourIds.add(other.id)
+        if (dist < this.restDistance) neuron.neighbourIds.add(other.id)
       }
 
-      // Only recalc connections if neighbourhood changed
-      const neighbourhoodChanged = !setsEqual(prevNeighbourIds, neuron.neighbourIds)
-      if (neighbourhoodChanged) {
-        neuron.connections = randomConnections(Array.from(neuron.neighbourIds), 1, 4)
-      }
+      const changed = !setsEqual(prevNeighbourIds, neuron.neighbourIds)
+      if (changed) neuron.connections = randomConnections(Array.from(neuron.neighbourIds), 1, 4)
     }
 
-    // Apply spring + repulsion forces
-    for (let i = 0; i < neurons.length; i++) {
-      for (let j = i + 1; j < neurons.length; j++) {
-        const a = neurons[i]
-        const b = neurons[j]
-        const dir = b.position.clone().sub(a.position)
-        const dist = dir.length() || 0.001
-        dir.normalize()
+    // Apply spring + repulsion with dt scaling
+ for (let i = 0; i < neurons.length; i++) {
+  const a = neurons[i]
 
-        let forceMag = this.stiffness * (dist - this.restDistance)
-        if (dist < this.repulsionDistance) {
-          forceMag -= this.repulsionStrength * (1 - dist / this.repulsionDistance)
-        }
+  for (let j = i + 1; j < neurons.length; j++) {
+    const b = neurons[j]
 
-        const force = dir.scale(forceMag)
-        a.applyForce(force.clone())
-        b.applyForce(force.clone().scale(-1))
-      }
+    const dir = b.position.clone().sub(a.position)
+    const dist = dir.length() || 0.001
+    if (dist > localDistance) continue  // skip neurons outside local radius
+    dir.normalize()
+
+    // Spring for neighbors
+    let forceMag = 0
+    if (a.connections.includes(b.id) || b.connections.includes(a.id)) {
+      forceMag += this.stiffness * (dist - this.restDistance)
     }
 
-    // Firing propagation
-    // Step 1: process firing neurons (dragged or propagated)
+    // Local repulsion
+    const repulsionDistance = 40
+    if (dist < repulsionDistance) {
+      forceMag -= this.repulsionStrength * (1 - dist / repulsionDistance)
+    }
+
+    const force = dir.scale(forceMag * dt)
+    a.applyForce(force.clone())
+    b.applyForce(force.clone().scale(-1))
+  }
+}
+
+
+    // Firing propagation with cycle prevention
     for (const neuron of neurons) {
-      if (neuron.firing && neuron.connections.length > 0) {
+      if (neuron.firing) {
         for (const targetId of neuron.connections) {
           const target = neurons.find(n => n.id === targetId)
           if (!target) continue
 
-          // Only propagate if this neuron hasn't already sent a signal to target
           if (!target.receivedSignals.has(neuron.id)) {
             target.receivedSignals.add(neuron.id)
             target.propagatedFiring = true
@@ -78,20 +84,6 @@ export class Space {
         }
       }
     }
-
-
-    // Step 2: update timers for propagated neurons
-    for (const neuron of neurons) {
-      if (neuron.propagatedFiring) {
-        neuron.propagationTimer += dt
-        if (neuron.propagationTimer >= this.propagationDelay) {
-          neuron.firing = true        // show firing visually
-          neuron.propagatedFiring = false
-          neuron.propagationTimer = 0
-        }
-      }
-    }
-
   }
 }
 
