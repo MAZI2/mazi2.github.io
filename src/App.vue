@@ -1,6 +1,6 @@
 <template>
-  <Controls />
-  <Viewport :get-exclusion-zone="getExclusionZone" />
+  <Controls @toggle-animation="toggleAnimation"/>
+  <Viewport :get-exclusion-zone="getExclusionZone" :paused="animationPaused"/>
   <TitleHeader ref="headerRef" />
   <NavBar @open-panel="openPanel" />
 
@@ -56,6 +56,12 @@ export default {
       '/route3': RouteThree
     }
 
+    const animationPaused = ref(false)
+
+    const toggleAnimation = () => {
+      animationPaused.value = !animationPaused.value
+    }
+
     const OFFSET_DISTANCE = 20
 
     const openPanel = (route: string) => {
@@ -63,7 +69,7 @@ export default {
       panels.value = panels.value.filter(p => p.route !== route)
 
       const width = Math.min(window.innerWidth * 0.8, 700)
-      const height = 300
+      const height = window.innerHeight - 250
 
       const baseX = (window.innerWidth - width) / 2
       const baseY = 200
@@ -162,7 +168,7 @@ export default {
     }
 
 
-    return { panels, openPanel, closePanel, updatePosition, headerRef, panelRef, getExclusionZone, minimizePanel, maximizePanel, updateSize, routeComponents }
+    return { panels, openPanel, closePanel, updatePosition, headerRef, panelRef, getExclusionZone, minimizePanel, maximizePanel, updateSize, routeComponents, toggleAnimation, animationPaused }
   }
 }
 </script>

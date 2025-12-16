@@ -13,6 +13,10 @@ const TILE_SIZE = 400
 
 export default defineComponent({
 props: {
+  paused: {
+    type: Boolean,
+    required: true
+  },
   getExclusionZone: Function
 },
   setup(props) {
@@ -133,23 +137,30 @@ props: {
         const dt = (now - last) / 1000
         last = now
 
-        // Update the exclusion zone every frame
-        updateExclusionZone()
+        if (!props.paused) {
+          updateExclusionZone()
 
-        // Update dragged neuron position
-        if (dragged && lastMouseEvent && canvas.value) {
-          const rect = canvas.value.getBoundingClientRect()
-          dragged.position.x = lastMouseEvent.clientX - rect.left + viewport.offsetX
-          dragged.position.y = lastMouseEvent.clientY - rect.top + viewport.offsetY
-          lastMouseEvent = null
+          if (dragged && lastMouseEvent && canvas.value) {
+            const rect = canvas.value.getBoundingClientRect()
+            dragged.position.x =
+              lastMouseEvent.clientX - rect.left + viewport.offsetX
+            dragged.position.y =
+              lastMouseEvent.clientY - rect.top + viewport.offsetY
+            lastMouseEvent = null
+          }
+
+          simulation.update(dt, viewport)
+          simulation.updateVisibleTiles(viewport)
+          renderer.draw(
+            simulation,
+            { x: viewport.offsetX, y: viewport.offsetY },
+            viewport.width,
+            viewport.height
+          )
+          viewport.update()
         }
 
-        simulation.update(dt, viewport)
-        simulation.updateVisibleTiles(viewport)
-        renderer.draw(simulation, { x: viewport.offsetX, y: viewport.offsetY }, viewport.width, viewport.height)
-        viewport.update()
-
-        requestAnimationFrame(loop)
+        requestAnimationFrame(loop) // ✅ ALWAYS schedule next frame
       }
       requestAnimationFrame(loop)
     })
