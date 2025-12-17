@@ -200,7 +200,7 @@ const openProjectPanel = (project: Project) => {
 .portfolio-top::after {
   content: '';
   display: block;
-  background: #ffffff;
+  background: var(--main-background);
 }
 
 
@@ -215,6 +215,8 @@ const openProjectPanel = (project: Project) => {
   display: flex;
   justify-content: flex-end; /* push content to the right */
   align-items: flex-start;
+  background: var(--main-background);
+  color: var(--main-text);
 }
 
 .header {
@@ -235,7 +237,7 @@ const openProjectPanel = (project: Project) => {
 
 /* CARD BASE */
 .project-card {
-  background: #fff;
+  background: var(--main-background);
   width: 220px;
 }
 
@@ -312,14 +314,6 @@ const openProjectPanel = (project: Project) => {
     border-radius: 6px;
     cursor: pointer;
   }
-}
-
-.more-to-come {
-  margin-top: 16px;
-  text-align: center;
-  padding: 8px 0;
-  color: #333;
-  font-weight: bold;
 }
 
 </style>
