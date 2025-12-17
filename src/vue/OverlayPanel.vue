@@ -8,11 +8,23 @@
     <div class="panel-header" 
          @mousedown="startDragMouse" 
          @touchstart.prevent="startDragTouch">
-      <div class="menu">
-        <i class="menu-item fa fa-window-close-o" @click="$emit('close')" aria-hidden="true"></i>
-        <i :class="maximized ? 'menu-item fa fa-window-minimize' : 'menu-item fa fa-window-maximize'" 
-           @click="toggleMaximize" aria-hidden="true"></i>
-      </div>
+<div class="menu">
+  <i
+    class="menu-item fa fa-window-close-o"
+    @click="$emit('close')"
+    @touchstart.stop
+    @mousedown.stop
+    aria-hidden="true"
+  ></i>
+  <i
+    :class="maximized ? 'menu-item fa fa-window-minimize' : 'menu-item fa fa-window-maximize'"
+    @click="toggleMaximize"
+    @touchstart.stop
+    @mousedown.stop
+    aria-hidden="true"
+  ></i>
+</div>
+      
     </div>
 
     <div class="content" ref="scrollContainer" @scroll="onScroll">
