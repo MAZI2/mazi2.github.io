@@ -258,59 +258,62 @@ const openProjectPanel = (project: Project) => {
 }
 
 /* LIST VIEW */
+/* LIST VIEW */
 .projects.list {
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr; /* single column */
+  gap: 20px; /* spacing between project cards */
+
+  .project-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 20px;
+  }
 
   .title {
-      margin: 0;
-      padding: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
 
     .left {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
 
-        i {
-            cursor: pointer;
-        }
+      i {
+        cursor: pointer;
+      }
     }
 
     .date {
-        font-size: 14px;
+      font-size: 14px;
     }
+  }
+
+  .long {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    word-wrap: break-word; /* wrap long text */
+  }
+
+  .list-gallery {
+    display: flex;
+    flex-wrap: wrap; /* allow wrapping */
+    gap: 10px;
+    margin: 15px 0;
+  }
+
+  .list-thumb {
+    width: 150px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
   }
 }
 
-.projects.list .project-card {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.long {
-    padding: 0;
-    margin: 0;
-}
-
-/* IMAGE STRIP */
-.list-gallery {
-  display: flex;
-  gap: 10px;
-  margin: 15px 0;
-}
-
-.list-thumb {
-  width: 150px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 6px;
-  cursor: pointer;
-}
 .more-to-come {
   margin-top: 16px;
   text-align: center;

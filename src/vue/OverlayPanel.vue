@@ -5,10 +5,13 @@
     @mouseleave="onMouseLeave"
     :style="panelStyle"
   >
-    <div class="panel-header" @mousedown="startDrag" @touchstart.prevent="startDrag">
+    <div class="panel-header" 
+         @mousedown="startDragMouse" 
+         @touchstart.prevent="startDragTouch">
       <div class="menu">
         <i class="menu-item fa fa-window-close-o" @click="$emit('close')" aria-hidden="true"></i>
-        <i :class="maximized ? 'menu-item fa fa-window-minimize' : 'menu-item fa fa-window-maximize'" @click="toggleMaximize" aria-hidden="true"></i>
+        <i :class="maximized ? 'menu-item fa fa-window-minimize' : 'menu-item fa fa-window-maximize'" 
+           @click="toggleMaximize" aria-hidden="true"></i>
       </div>
     </div>
 
@@ -16,23 +19,24 @@
       <slot />
     </div>
 
+    <span v-if="showMoreToCome && props.withMoreToCome" class="more-to-come">And more to come...</span>
 
-  <span v-if="showMoreToCome && props.withMoreToCome" class="more-to-come">And more to come...</span>
     <div class="resize-handle"
-     @mousedown.prevent="startResize" @touchstart.prevent="startResize">
-  <i class="fa fa-expand" aria-hidden="true"></i>
-</div>
+         @mousedown.prevent="startResizeMouse" 
+         @touchstart.prevent="startResizeTouch">
+      <i class="fa fa-expand" aria-hidden="true"></i>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, computed, ref, onMounted, onBeforeUnmount, nextTick, watchEffect } from 'vue'
+import { defineProps, defineEmits, computed, ref, nextTick, watchEffect, onMounted } from 'vue'
 
 const props = defineProps<{
   position: { x: number; y: number }
   size: { width: number; height: number }
   maximized?: boolean
-  withMoreToCome?: false 
+  withMoreToCome?: boolean 
 }>()
 
 const emit = defineEmits<{
@@ -47,18 +51,8 @@ const isHovered = ref(false)
 const showMoreToCome = ref(false)
 const scrollContainer = ref<HTMLElement | null>(null)
 
-
-function onMouseEnter() {
-  isHovered.value = true
-}
-
-function onMouseLeave() {
-  isHovered.value = false
-}
-
 defineExpose({ isHovered })
 
-// Apply both position AND size
 const panelStyle = computed(() => ({
   left: props.position.x + 'px',
   top: props.position.y + 'px',
@@ -66,116 +60,103 @@ const panelStyle = computed(() => ({
   height: props.size.height + 'px'
 }))
 
-
 const onScroll = () => {
   if (!scrollContainer.value) return
   const container = scrollContainer.value
-
-  const scrollTop = container.scrollTop
-  const scrollHeight = container.scrollHeight
-  const clientHeight = container.clientHeight
-
-  // check if scrolled to bottom OR content fits inside container
-  showMoreToCome.value = scrollTop + clientHeight >= scrollHeight - 5 || scrollHeight <= clientHeight
+  showMoreToCome.value = container.scrollTop + container.clientHeight >= container.scrollHeight - 5 
+    || container.scrollHeight <= container.clientHeight
 }
 
+// ensure showMoreToCome updates after DOM changes
 watchEffect(async () => {
-  await nextTick() // wait for DOM to update
+  await nextTick()
   onScroll()
 })
 
-// Dragging
+function onMouseEnter() { isHovered.value = true }
+function onMouseLeave() { isHovered.value = false }
+
+// --------------------
+// DRAGGING
+// --------------------
 let dragging = false
 let offset = { x: 0, y: 0 }
 
-function startDrag(e: MouseEvent | TouchEvent) {
-  e.preventDefault()
+function startDragMouse(e: MouseEvent) { startDrag(e.clientX, e.clientY, 'mouse') }
+function startDragTouch(e: TouchEvent) {
+  if (typeof TouchEvent === 'undefined') return
+  startDrag(e.touches[0].clientX, e.touches[0].clientY, 'touch')
+}
+
+function startDrag(clientX: number, clientY: number, type: 'mouse' | 'touch') {
   dragging = true
-
-  let clientX: number, clientY: number
-  if (e instanceof TouchEvent) {
-    clientX = e.touches[0].clientX
-    clientY = e.touches[0].clientY
-  } else {
-    clientX = e.clientX
-    clientY = e.clientY
-  }
-
   offset.x = clientX - props.position.x
   offset.y = clientY - props.position.y
 
-  window.addEventListener('mousemove', onDrag)
-  window.addEventListener('mouseup', stopDrag)
-  window.addEventListener('touchmove', onDrag, { passive: false })
-  window.addEventListener('touchend', stopDrag)
+  if (type === 'mouse') {
+    window.addEventListener('mousemove', onDragMouse)
+    window.addEventListener('mouseup', stopDrag)
+  } else {
+    window.addEventListener('touchmove', onDragTouch, { passive: false })
+    window.addEventListener('touchend', stopDrag)
+  }
 }
 
-function onDrag(e: MouseEvent | TouchEvent) {
-  if (!dragging) return
-
+function onDragMouse(e: MouseEvent) { onDrag(e.clientX, e.clientY) }
+function onDragTouch(e: TouchEvent) {
   e.preventDefault()
-  let clientX: number, clientY: number
-  if (e instanceof TouchEvent) {
-    clientX = e.touches[0].clientX
-    clientY = e.touches[0].clientY
-  } else {
-    clientX = e.clientX
-    clientY = e.clientY
-  }
+  onDrag(e.touches[0].clientX, e.touches[0].clientY)
+}
 
+function onDrag(clientX: number, clientY: number) {
+  if (!dragging) return
   emit('drag', { x: clientX - offset.x, y: clientY - offset.y })
 }
 
 function stopDrag() {
   dragging = false
-  window.removeEventListener('mousemove', onDrag)
+  window.removeEventListener('mousemove', onDragMouse)
   window.removeEventListener('mouseup', stopDrag)
-  window.removeEventListener('touchmove', onDrag)
+  window.removeEventListener('touchmove', onDragTouch)
   window.removeEventListener('touchend', stopDrag)
 }
 
-
-// Resizing
+// --------------------
+// RESIZING
+// --------------------
 let resizing = false
 let resizeStart = { x: 0, y: 0 }
 let initialSize = { width: 0, height: 0 }
 
-function startResize(e: MouseEvent | TouchEvent) {
-  e.preventDefault()
+function startResizeMouse(e: MouseEvent) { startResize(e.clientX, e.clientY, 'mouse') }
+function startResizeTouch(e: TouchEvent) {
+  if (typeof TouchEvent === 'undefined') return
+  startResize(e.touches[0].clientX, e.touches[0].clientY, 'touch')
+}
+
+function startResize(clientX: number, clientY: number, type: 'mouse' | 'touch') {
   resizing = true
-
-  let clientX: number, clientY: number
-  if (e instanceof TouchEvent) {
-    clientX = e.touches[0].clientX
-    clientY = e.touches[0].clientY
-  } else {
-    clientX = e.clientX
-    clientY = e.clientY
-  }
-
   resizeStart = { x: clientX, y: clientY }
   initialSize = { ...props.size }
 
-  window.addEventListener('mousemove', onResize)
-  window.addEventListener('mouseup', stopResize)
-  window.addEventListener('touchmove', onResize, { passive: false })
-  window.addEventListener('touchend', stopResize)
+  if (type === 'mouse') {
+    window.addEventListener('mousemove', onResizeMouse)
+    window.addEventListener('mouseup', stopResize)
+  } else {
+    window.addEventListener('touchmove', onResizeTouch, { passive: false })
+    window.addEventListener('touchend', stopResize)
+  }
 }
 
-function onResize(e: MouseEvent | TouchEvent) {
-    onScroll()
-  if (!resizing) return
+function onResizeMouse(e: MouseEvent) { onResize(e.clientX, e.clientY) }
+function onResizeTouch(e: TouchEvent) {
   e.preventDefault()
+  onResize(e.touches[0].clientX, e.touches[0].clientY)
+}
 
-  let clientX: number, clientY: number
-  if (e instanceof TouchEvent) {
-    clientX = e.touches[0].clientX
-    clientY = e.touches[0].clientY
-  } else {
-    clientX = e.clientX
-    clientY = e.clientY
-  }
-
+function onResize(clientX: number, clientY: number) {
+  if (!resizing) return
+  onScroll()
   const newWidth = Math.max(100, initialSize.width + (clientX - resizeStart.x))
   const newHeight = Math.max(100, initialSize.height + (clientY - resizeStart.y))
   emit('resize', { width: newWidth, height: newHeight })
@@ -183,14 +164,15 @@ function onResize(e: MouseEvent | TouchEvent) {
 
 function stopResize() {
   resizing = false
-  window.removeEventListener('mousemove', onResize)
+  window.removeEventListener('mousemove', onResizeMouse)
   window.removeEventListener('mouseup', stopResize)
-  window.removeEventListener('touchmove', onResize)
+  window.removeEventListener('touchmove', onResizeTouch)
   window.removeEventListener('touchend', stopResize)
 }
 
-
-// Maximize / Minimize
+// --------------------
+// MAXIMIZE / MINIMIZE
+// --------------------
 function toggleMaximize() {
   if (!props.maximized) emit('maximize')
   else emit('minimize')
@@ -217,30 +199,24 @@ function toggleMaximize() {
   color: black;
   padding: 6px 12px;
   cursor: grab;
-
-  .menu {
-    display: flex;
-    gap: 8px;
-
-    .menu-item {
-      cursor: pointer;
-    }
-  }
 }
 
+.menu {
+  display: flex;
+  gap: 8px;
+}
+
+.menu-item { cursor: pointer }
+
 .content {
-    overflow-x: auto;
+  overflow-x: auto;
   flex: 1;
   color: black;
   margin-bottom: 20px;
   min-height: 50px;
-
-  /* Firefox */
   scrollbar-width: thick;
   scrollbar-color: black white;
 }
-
-
 
 .resize-handle {
   width: 12px;
@@ -250,18 +226,16 @@ function toggleMaximize() {
   bottom: 15px;
   cursor: se-resize;
   color: black;
-
-  i {
-    display: inline-block; /* needed for transform */
-    transform: scaleX(-1);
-  }
-  
 }
+
+.resize-handle i { display: inline-block; transform: scaleX(-1); }
+
 .more-to-come {
-      position: absolute;
-    color: black;
-    font-size: 14px;
-    left: 10px;
+  position: absolute;
+  color: black;
+  font-size: 14px;
+  left: 10px;
   bottom: 5px;
-  }
+}
 </style>
+

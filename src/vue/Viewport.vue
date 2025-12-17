@@ -132,6 +132,7 @@ props: {
       })
 
 // --- Touch start ---
+if (typeof window !== 'undefined' && 'TouchEvent' in window) {
 canvas.value.addEventListener('touchstart', (e: TouchEvent) => {
   if (!canvas.value) return
   const rect = canvas.value.getBoundingClientRect()
@@ -167,6 +168,7 @@ canvas.value.addEventListener('touchcancel', () => {
   if (dragged) dragged.isDragged = false
   dragged = null
 })
+}
       
 
       // Animation loop
