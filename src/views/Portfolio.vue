@@ -1,33 +1,33 @@
 <template>
-   <div class="portfolio-top">
-  <div class="separator"></div>
-  <div class="portfolio-menu">
-    <i
-      :class="viewGrid ? 'fa fa-th-large' : 'fa fa-list'"
-      aria-hidden="true"
-      @click="toggleView"
-    ></i>
+  <div class="portfolio-top">
+    <div class="separator"></div>
+    <div class="portfolio-menu">
+      <i
+          :class="viewGrid ? 'fa fa-th-large' : 'fa fa-list'"
+          aria-hidden="true"
+          @click="toggleView"
+      ></i>
+    </div>
   </div>
-</div>
   <div>
 
-       <span class="header"><b>Portfolio</b></span>
-    <div :class="['projects', { list: !viewGrid }]" >
+    <span class="header"><b>Portfolio</b></span>
+    <div :class="['projects', { list: !viewGrid }]">
       <div
-        v-for="project in projects"
-        :key="project.title"
-        class="project-card"
+          v-for="project in projects"
+          :key="project.title"
+          class="project-card"
       >
         <!-- GRID VIEW -->
         <template v-if="viewGrid">
           <img
-            class="project-image"
-            :src="project.image"
-            alt=""
-            @click="openProjectPanel(project)"
+              :src="project.image"
+              alt=""
+              class="project-image"
+              @click="openProjectPanel(project)"
           />
-         <span class="left" @click="openProjectPanel(project)">
-                    <i class="fa fa-play" aria-hidden="true" @click="openProjectPanel(project)"></i>
+          <span class="left" @click="openProjectPanel(project)">
+                    <i aria-hidden="true" class="fa fa-play" @click="openProjectPanel(project)"></i>
                     <b>{{ project.title }}</b>
                 </span>
           <p class="short">{{ project.short }}</p>
@@ -37,21 +37,21 @@
         <template v-else>
             <span class="title">
                 <span class="left" @click="openProjectPanel(project)">
-                    <i class="fa fa-play" aria-hidden="true" @click="openProjectPanel(project)"></i>
+                    <i aria-hidden="true" class="fa fa-play" @click="openProjectPanel(project)"></i>
                     <b>{{ project.title }}</b>
                 </span>
                 <span class="date">{{ project.date }}</span>
             </span>
 
-            <span class="long">{{ project.long }}</span>
+          <span class="long">{{ project.long }}</span>
 
           <div class="list-gallery">
             <img
-              v-for="(img, idx) in project.gallery"
-              :key="idx"
-              :src="img"
-              class="list-thumb"
-              @click="openProjectPanel(project)"
+                v-for="(img, idx) in project.gallery"
+                :key="idx"
+                :src="img"
+                class="list-thumb"
+                @click="openProjectPanel(project)"
             />
           </div>
         </template>
@@ -61,9 +61,9 @@
 </template>
 
 
-<script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { marked } from 'marked'
+<script lang="ts" setup>
+import {ref, onMounted, onBeforeUnmount} from 'vue'
+import {marked} from 'marked'
 
 const emit = defineEmits<{
   (e: 'open-panel', payload: { route: string; props?: any }): void
@@ -111,17 +111,17 @@ marked.use({
         return src.indexOf('```iframe')
       },
       tokenizer(src) {
-          if (!src.startsWith('```iframe')) return
+        if (!src.startsWith('```iframe')) return
 
-          const match = src.match(/^```iframe\n([\s\S]*?)\n```/)
-          if (!match) return
+        const match = src.match(/^```iframe\n([\s\S]*?)\n```/)
+        if (!match) return
 
-          return {
-            type: 'iframe',
-            raw: match[0],
-            url: match[1].trim()
-          }
-        },
+        return {
+          type: 'iframe',
+          raw: match[0],
+          url: match[1].trim()
+        }
+      },
       renderer(token) {
         return `<iframe-placeholder data-url="${token.url}"></iframe-placeholder>`
       }
@@ -134,7 +134,7 @@ const extractIframes = (md: string): string[] => {
   const div = document.createElement('div')
   div.innerHTML = html
   return Array.from(div.querySelectorAll('[data-iframe]'))
-    .map(el => el.getAttribute('data-iframe')!)
+      .map(el => el.getAttribute('data-iframe')!)
 }
 
 
@@ -146,43 +146,43 @@ const extractImages = (md: string) => {
 }
 
 const projects = ref<Project[]>(
-  Object.entries(projectFiles).map(([_, raw]) => {
-    const frontmatterMatch = raw.match(/---\n([\s\S]*?)\n---/)
-    const metadata: any = {}
+    Object.entries(projectFiles).map(([_, raw]) => {
+      const frontmatterMatch = raw.match(/---\n([\s\S]*?)\n---/)
+      const metadata: any = {}
 
-    if (frontmatterMatch) {
-      frontmatterMatch[1].split('\n').forEach(line => {
-        const [key, ...rest] = line.split(':')
-        metadata[key.trim()] = rest.join(':').trim()
-      })
-    }
+      if (frontmatterMatch) {
+        frontmatterMatch[1].split('\n').forEach(line => {
+          const [key, ...rest] = line.split(':')
+          metadata[key.trim()] = rest.join(':').trim()
+        })
+      }
 
-    const content = raw.replace(/---[\s\S]*?---/, '').trim()
-const contentImages = extractImages(content)
-const iframeUrls = extractIframes(content)
+      const content = raw.replace(/---[\s\S]*?---/, '').trim()
+      const contentImages = extractImages(content)
+      const iframeUrls = extractIframes(content)
 
-const gallery = Array.from(
-  new Set([
-    ...(metadata.image ? [metadata.image] : []),
-    ...contentImages
-  ])
-).slice(0, 4)
+      const gallery = Array.from(
+          new Set([
+            ...(metadata.image ? [metadata.image] : []),
+            ...contentImages
+          ])
+      ).slice(0, 4)
 
-return {
-  ...metadata,
-  content,
-  gallery,
-  iframes: iframeUrls
-}
+      return {
+        ...metadata,
+        content,
+        gallery,
+        iframes: iframeUrls
+      }
 
-    
-  })
+
+    })
 )
 
 const openProjectPanel = (project: Project) => {
   emit('open-panel', {
     route: 'openProject',
-    props: { project }
+    props: {project}
   })
 }
 </script>
@@ -205,19 +205,20 @@ const openProjectPanel = (project: Project) => {
 
 
 .separator {
-    height: 2px;
-    margin: 0 10px;
-    background: black;
+  height: 2px;
+  margin: 0 10px;
+  background: var(--main-stroke);
 }
+
 .portfolio-menu {
-    padding: 5px 12px;
-    display: flex;
-    justify-content: flex-end; /* push content to the right */
-    align-items: flex-start;
+  padding: 5px 12px;
+  display: flex;
+  justify-content: flex-end; /* push content to the right */
+  align-items: flex-start;
 }
 
 .header {
-    padding: 20px;
+  padding: 20px;
 }
 
 .projects {
@@ -228,9 +229,8 @@ const openProjectPanel = (project: Project) => {
   grid-template-columns: repeat(auto-fill, 240px);
   justify-content: start;
   position: relative;
-  overflow-y: ; 
+  overflow-y: ;
 }
-
 
 
 /* CARD BASE */

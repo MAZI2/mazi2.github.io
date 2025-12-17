@@ -1,2 +1,3 @@
 // Placeholder for future PixiJS / WebGL renderer
-export class WebGLRenderer {}
+export class WebGLRenderer {
+}

@@ -4,12 +4,12 @@
         <h2>{{ project.title }}</h2>
         <p>{{ project.date }}</p>
       </span>
-    <MarkdownRenderer :content="project.content" @click="handleLinkClick" />
+    <MarkdownRenderer :content="project.content" @click="handleLinkClick"/>
   </div>
 </template>
 
-<script setup lang="ts">
-import { marked } from 'marked'
+<script lang="ts" setup>
+import {marked} from 'marked'
 import MarkdownRenderer from '../vue/MarkdownRenderer.vue'
 
 const props = defineProps<{ project: any }>()
@@ -28,7 +28,7 @@ const handleLinkClick = (e: MouseEvent) => {
     // Emit panel with OpenExternal component
     emit('open-panel', {
       route: 'openExternal',
-      props: { url: href }
+      props: {url: href}
     })
   }
 }
@@ -37,13 +37,13 @@ const handleLinkClick = (e: MouseEvent) => {
 
 <style scoped>
 .project-panel {
-    padding: 0 20px;
+  padding: 0 20px;
 
-    .heading {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+  .heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
 </style>
 

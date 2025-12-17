@@ -1,14 +1,15 @@
 <template>
-  <IFrameComponent class="iframe" :url="url" />
+  <IFrameComponent :url="url" class="iframe"/>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import IFrameComponent from '../vue/components/IFrameComponent.vue'
+
 defineProps<{ url: string }>()
 </script>
 
 <style scoped>
 .iframe {
-    height: 95%;
-} 
+  height: 95%;
+}
 </style>

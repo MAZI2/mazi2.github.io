@@ -1,9 +1,9 @@
 <template>
   <nav class="navbar">
 
-      <button class="hamburger" @click="toggleMobileMenu">
-          <i class="fa fa-bars" aria-hidden="true"></i>
-      </button>
+    <button class="hamburger" @click="toggleMobileMenu">
+      <i aria-hidden="true" class="fa fa-bars"></i>
+    </button>
     <div class="content">
       <!-- Hamburger for mobile -->
 
@@ -14,7 +14,7 @@
       </div>
 
       <!-- Dropdown for mobile -->
-      <div class="links mobile" v-if="isMobileMenuOpen">
+      <div v-if="isMobileMenuOpen" class="links mobile">
         <a @click="$emit('open-panel', '/about'); isMobileMenuOpen=false">About me</a>
         <a @click="$emit('open-panel', { route: '/portfolio', props: { withMoreToCome: true } }); isMobileMenuOpen=false">Portfolio</a>
       </div>
@@ -24,18 +24,18 @@
 
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import {defineComponent, ref} from 'vue'
 
 export default defineComponent({
   emits: ['open-panel'],
-  setup(props, { emit }) {
+  setup(props, {emit}) {
     const isMobileMenuOpen = ref(false)
 
     const toggleMobileMenu = () => {
       isMobileMenuOpen.value = !isMobileMenuOpen.value
     }
 
-    return { isMobileMenuOpen, toggleMobileMenu, emit }
+    return {isMobileMenuOpen, toggleMobileMenu, emit}
   }
 })
 </script>
@@ -49,8 +49,8 @@ export default defineComponent({
   min-width: 300px;
   max-width: 700px;
   width: 90%;
-  background-color: #ffffff;
-  border: 2px solid black;
+  background-color: var(--main-background);
+  border: 2px solid var(--main-stroke);
   border-radius: 10px;
   z-index: 10;
   text-align: center;
@@ -77,24 +77,24 @@ export default defineComponent({
     top: 60px;
     right: 0px;
     align-items: flex-start;
-    background: white;
-    border: 2px solid black;
+    background: var(--main-background);
+    border: 2px solid var(--main-stroke);
     border-radius: 10px;
     padding: 10px;
     width: fit-content;
   }
 
   .hamburger {
-      position: fixed;
-      right: 0;
-      margin: 17px 10px;
-      padding: 0;
+    position: fixed;
+    right: 0;
+    margin: 17px 10px;
+    padding: 0;
     display: none;
     background: none;
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: black;
+    color: var(--main-text);
 
     i {
       font-size: 20px;
@@ -104,23 +104,25 @@ export default defineComponent({
 
 /* Mobile breakpoint */
 @media screen and (max-width: 600px) {
-    .navbar {
-        background: transparent;
-        border: none;
-        z-index: 200000;
-        top: 0;
-    }
+  .navbar {
+    background: transparent;
+    border: none;
+    z-index: 200000;
+    top: 0;
+  }
+
   .links.desktop {
     display: none !important;
   }
+
   .hamburger {
     display: block !important;
   }
+
   .links.mobile {
     display: flex !important;
   }
 }
-
 
 
 </style>

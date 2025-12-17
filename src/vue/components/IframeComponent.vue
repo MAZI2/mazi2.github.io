@@ -1,13 +1,13 @@
 <template>
   <iframe
-    :src="url"
-    class="iframe-panel"
-    sandbox="allow-scripts allow-same-origin allow-popups"
+      :src="url"
+      class="iframe-panel"
+      sandbox="allow-scripts allow-same-origin allow-popups"
   ></iframe>
 </template>
 
-<script setup lang="ts">
-import { defineProps } from 'vue'
+<script lang="ts" setup>
+import {defineProps} from 'vue'
 
 const props = defineProps<{
   url: string

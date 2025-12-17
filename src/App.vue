@@ -1,37 +1,37 @@
 <template>
   <Controls @toggle-animation="toggleAnimation"/>
   <Viewport :get-exclusion-zone="getExclusionZone" :paused="animationPaused"/>
-  <TitleHeader ref="headerRef" />
-  <NavBar @open-panel="openPanel" />
+  <TitleHeader ref="headerRef"/>
+  <NavBar @open-panel="openPanel"/>
 
   <!-- Render all panels -->
   <OverlayPanel
-  v-for="panel in panels"
-  :key="panel.id"
-  :position="panel.position"
-  :size="panel.size"
-  :maximized="panel.maximized"
-  :with-more-to-come="panel.withMoreToCome"
-  @drag="updatePosition(panel.id, $event)"
-  @resize="updateSize(panel.id, $event)"
-  @maximize="maximizePanel(panel.id)"
-  @minimize="minimizePanel(panel.id)"
-  @close="closePanel(panel.id)"
->
-  <!-- Dynamically resolve component and props -->
-<component
-  v-if="resolvePanelComponent(panel).component"
-  :is="resolvePanelComponent(panel).component"
-  v-bind="resolvePanelComponent(panel).props"
-  @open-panel="openPanel"
-/>
-  
-</OverlayPanel>
+      v-for="panel in panels"
+      :key="panel.id"
+      :maximized="panel.maximized"
+      :position="panel.position"
+      :size="panel.size"
+      :with-more-to-come="panel.withMoreToCome"
+      @close="closePanel(panel.id)"
+      @drag="updatePosition(panel.id, $event)"
+      @maximize="maximizePanel(panel.id)"
+      @minimize="minimizePanel(panel.id)"
+      @resize="updateSize(panel.id, $event)"
+  >
+    <!-- Dynamically resolve component and props -->
+    <component
+        :is="resolvePanelComponent(panel).component"
+        v-if="resolvePanelComponent(panel).component"
+        v-bind="resolvePanelComponent(panel).props"
+        @open-panel="openPanel"
+    />
+
+  </OverlayPanel>
 
 </template>
 
 <script lang="ts">
-import { ref, onMounted } from 'vue'
+import {ref, onMounted} from 'vue'
 import Controls from './vue/Controls.vue'
 import ViewportComponent from './vue/Viewport.vue'
 import TitleHeader from './vue/Header.vue'
@@ -45,19 +45,19 @@ import Portfolio from './views/Portfolio.vue'
 import RouteThree from './views/RouteThree.vue'
 
 export default {
-  components: { Controls, Viewport: ViewportComponent, TitleHeader, NavBar, OverlayPanel },
+  components: {Controls, Viewport: ViewportComponent, TitleHeader, NavBar, OverlayPanel},
   setup() {
     const panels = ref<
-      Array<{
-        id: number
-        route: string
-        position: { x: number; y: number }
-        size: { width: number; height: number }
-        prevPosition?: { x: number; y: number }
-        prevSize?: { width: number; height: number }
-        maximized?: boolean
-        withMoreToCome?: boolean
-      }>
+        Array<{
+          id: number
+          route: string
+          position: { x: number; y: number }
+          size: { width: number; height: number }
+          prevPosition?: { x: number; y: number }
+          prevSize?: { width: number; height: number }
+          maximized?: boolean
+          withMoreToCome?: boolean
+        }>
     >([])
 
     const routeComponents: Record<string, any> = {
@@ -75,27 +75,25 @@ export default {
     }
 
 
-function resolvePanelComponent(panel: { route: string; props?: any }) {
-  // Open external link
-  if (panel.route === 'openExternal' && panel.props?.url) {
-    return {
-      component: OpenExternal,
-      props: { url: panel.props.url }
+    function resolvePanelComponent(panel: { route: string; props?: any }) {
+      // Open external link
+      if (panel.route === 'openExternal' && panel.props?.url) {
+        return {
+          component: OpenExternal,
+          props: {url: panel.props.url}
+        }
+      }
+
+      // Normal route mapping
+      const component = routeComponents[panel.route] || null
+      return {
+        component,
+        props: panel.props || {}
+      }
     }
-  }
 
-  // Normal route mapping
-  const component = routeComponents[panel.route] || null
-  return {
-    component,
-    props: panel.props || {}
-  }
-}
+    const isMobile = () => window.innerWidth <= 768
 
-const isMobile = () => window.innerWidth <= 768
-
-    
-    
 
     const openPanel = (panelData: string | { route: string; props?: any }) => {
       let route = ''
@@ -106,7 +104,7 @@ const isMobile = () => window.innerWidth <= 768
       } else {
         route = panelData.route
         props = panelData.props || {}
-     }
+      }
 
       // Remove existing panel with this route
       panels.value = panels.value.filter(p => p.route !== route)
@@ -121,21 +119,21 @@ const isMobile = () => window.innerWidth <= 768
 
       if (panels.value.length > 0) {
         const angle = Math.random() * Math.PI * 2
-        x += Math.cos(angle) * 20 * (window.innerWidth/1920)
+        x += Math.cos(angle) * 20 * (window.innerWidth / 1920)
         y += Math.sin(angle) * 20
       }
 
       panels.value.push({
-  id: Date.now(),
-  route,
-  props,
-  position: { x, y },  // use calculated position
-  size: { width, height },
-  maximized: false,
-  withMoreToCome: props.withMoreToCome
-})
+        id: Date.now(),
+        route,
+        props,
+        position: {x, y},  // use calculated position
+        size: {width, height},
+        maximized: false,
+        withMoreToCome: props.withMoreToCome
+      })
     }
-    
+
 
     onMounted(() => {
       openPanel('/about') // or whatever your default route is
@@ -151,10 +149,10 @@ const isMobile = () => window.innerWidth <= 768
       const p = panels.value.find(p => p.id === id)
       if (!p) return
       if (!p.maximized) {
-        p.prevPosition = { ...p.position }
-        p.prevSize = { ...p.size }
-        p.position = { x: 0, y: 0 }
-        p.size = { width: window.innerWidth, height: window.innerHeight }
+        p.prevPosition = {...p.position}
+        p.prevSize = {...p.size}
+        p.position = {x: 0, y: 0}
+        p.size = {width: window.innerWidth, height: window.innerHeight}
         p.maximized = true
       }
     }
@@ -162,8 +160,8 @@ const isMobile = () => window.innerWidth <= 768
     function minimizePanel(id: number) {
       const p = panels.value.find(p => p.id === id)
       if (!p || !p.prevPosition || !p.prevSize) return
-      p.position = { ...p.prevPosition }
-      p.size = { ...p.prevSize }
+      p.position = {...p.prevPosition}
+      p.size = {...p.prevSize}
       p.maximized = false
     }
 
@@ -202,7 +200,7 @@ const isMobile = () => window.innerWidth <= 768
         zones.push({
           x: panel.position.x + 100, // keep the subtraction from original code
           y: panel.position.y,
-          width: panel.size.width-200, // you can adjust this if you have actual panel width
+          width: panel.size.width - 200, // you can adjust this if you have actual panel width
           height: panel.size.height, // match OverlayPanel height
           padding: 20
         })
@@ -212,22 +210,28 @@ const isMobile = () => window.innerWidth <= 768
     }
 
 
-    return { 
-    panels, 
-    openPanel, 
-    closePanel, 
-    updatePosition, 
-    headerRef, 
-    panelRef, 
-    getExclusionZone, 
-    minimizePanel, 
-    maximizePanel, 
-    updateSize, 
-    routeComponents, 
-    toggleAnimation, 
-    animationPaused,
-    resolvePanelComponent
+    return {
+      panels,
+      openPanel,
+      closePanel,
+      updatePosition,
+      headerRef,
+      panelRef,
+      getExclusionZone,
+      minimizePanel,
+      maximizePanel,
+      updateSize,
+      routeComponents,
+      toggleAnimation,
+      animationPaused,
+      resolvePanelComponent
     }
   }
 }
 </script>
+
+<style>
+.app {
+  background: var(--main-background);
+}
+</style>

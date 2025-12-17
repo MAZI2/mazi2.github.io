@@ -1,54 +1,54 @@
 <template>
   <div
-    class="overlay-panel"
-    @mouseenter="onMouseEnter"
-    @mouseleave="onMouseLeave"
-    :style="panelStyle"
+      :style="panelStyle"
+      class="overlay-panel"
+      @mouseenter="onMouseEnter"
+      @mouseleave="onMouseLeave"
   >
-    <div class="panel-header" 
-         @mousedown="startDragMouse" 
+    <div class="panel-header"
+         @mousedown="startDragMouse"
          @touchstart.prevent="startDragTouch">
-<div class="menu">
-  <i
-    class="menu-item fa fa-window-close-o"
-    @click="$emit('close')"
-    @touchstart.stop
-    @mousedown.stop
-    aria-hidden="true"
-  ></i>
-  <i
-    :class="maximized ? 'menu-item fa fa-window-minimize' : 'menu-item fa fa-window-maximize'"
-    @click="toggleMaximize"
-    @touchstart.stop
-    @mousedown.stop
-    aria-hidden="true"
-  ></i>
-</div>
-      
+      <div class="menu">
+        <i
+            aria-hidden="true"
+            class="menu-item fa fa-window-close-o"
+            @click="$emit('close')"
+            @touchstart.stop
+            @mousedown.stop
+        ></i>
+        <i
+            :class="maximized ? 'menu-item fa fa-window-minimize' : 'menu-item fa fa-window-maximize'"
+            aria-hidden="true"
+            @click="toggleMaximize"
+            @touchstart.stop
+            @mousedown.stop
+        ></i>
+      </div>
+
     </div>
 
-    <div class="content" ref="scrollContainer" @scroll="onScroll">
-      <slot />
+    <div ref="scrollContainer" class="content" @scroll="onScroll">
+      <slot/>
     </div>
 
     <span v-if="showMoreToCome && props.withMoreToCome" class="more-to-come">And more to come...</span>
 
     <div class="resize-handle"
-         @mousedown.prevent="startResizeMouse" 
+         @mousedown.prevent="startResizeMouse"
          @touchstart.prevent="startResizeTouch">
-      <i class="fa fa-expand" aria-hidden="true"></i>
+      <i aria-hidden="true" class="fa fa-expand"></i>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { defineProps, defineEmits, computed, ref, nextTick, watchEffect, onMounted } from 'vue'
+<script lang="ts" setup>
+import {defineProps, defineEmits, computed, ref, nextTick, watchEffect, onMounted} from 'vue'
 
 const props = defineProps<{
   position: { x: number; y: number }
   size: { width: number; height: number }
   maximized?: boolean
-  withMoreToCome?: boolean 
+  withMoreToCome?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -63,7 +63,7 @@ const isHovered = ref(false)
 const showMoreToCome = ref(false)
 const scrollContainer = ref<HTMLElement | null>(null)
 
-defineExpose({ isHovered })
+defineExpose({isHovered})
 
 const panelStyle = computed(() => ({
   left: props.position.x + 'px',
@@ -75,8 +75,8 @@ const panelStyle = computed(() => ({
 const onScroll = () => {
   if (!scrollContainer.value) return
   const container = scrollContainer.value
-  showMoreToCome.value = container.scrollTop + container.clientHeight >= container.scrollHeight - 5 
-    || container.scrollHeight <= container.clientHeight
+  showMoreToCome.value = container.scrollTop + container.clientHeight >= container.scrollHeight - 5
+      || container.scrollHeight <= container.clientHeight
 }
 
 // ensure showMoreToCome updates after DOM changes
@@ -85,16 +85,24 @@ watchEffect(async () => {
   onScroll()
 })
 
-function onMouseEnter() { isHovered.value = true }
-function onMouseLeave() { isHovered.value = false }
+function onMouseEnter() {
+  isHovered.value = true
+}
+
+function onMouseLeave() {
+  isHovered.value = false
+}
 
 // --------------------
 // DRAGGING
 // --------------------
 let dragging = false
-let offset = { x: 0, y: 0 }
+let offset = {x: 0, y: 0}
 
-function startDragMouse(e: MouseEvent) { startDrag(e.clientX, e.clientY, 'mouse') }
+function startDragMouse(e: MouseEvent) {
+  startDrag(e.clientX, e.clientY, 'mouse')
+}
+
 function startDragTouch(e: TouchEvent) {
   if (typeof TouchEvent === 'undefined') return
   startDrag(e.touches[0].clientX, e.touches[0].clientY, 'touch')
@@ -109,12 +117,15 @@ function startDrag(clientX: number, clientY: number, type: 'mouse' | 'touch') {
     window.addEventListener('mousemove', onDragMouse)
     window.addEventListener('mouseup', stopDrag)
   } else {
-    window.addEventListener('touchmove', onDragTouch, { passive: false })
+    window.addEventListener('touchmove', onDragTouch, {passive: false})
     window.addEventListener('touchend', stopDrag)
   }
 }
 
-function onDragMouse(e: MouseEvent) { onDrag(e.clientX, e.clientY) }
+function onDragMouse(e: MouseEvent) {
+  onDrag(e.clientX, e.clientY)
+}
+
 function onDragTouch(e: TouchEvent) {
   e.preventDefault()
   onDrag(e.touches[0].clientX, e.touches[0].clientY)
@@ -122,7 +133,7 @@ function onDragTouch(e: TouchEvent) {
 
 function onDrag(clientX: number, clientY: number) {
   if (!dragging) return
-  emit('drag', { x: clientX - offset.x, y: clientY - offset.y })
+  emit('drag', {x: clientX - offset.x, y: clientY - offset.y})
 }
 
 function stopDrag() {
@@ -137,10 +148,13 @@ function stopDrag() {
 // RESIZING
 // --------------------
 let resizing = false
-let resizeStart = { x: 0, y: 0 }
-let initialSize = { width: 0, height: 0 }
+let resizeStart = {x: 0, y: 0}
+let initialSize = {width: 0, height: 0}
 
-function startResizeMouse(e: MouseEvent) { startResize(e.clientX, e.clientY, 'mouse') }
+function startResizeMouse(e: MouseEvent) {
+  startResize(e.clientX, e.clientY, 'mouse')
+}
+
 function startResizeTouch(e: TouchEvent) {
   if (typeof TouchEvent === 'undefined') return
   startResize(e.touches[0].clientX, e.touches[0].clientY, 'touch')
@@ -148,19 +162,22 @@ function startResizeTouch(e: TouchEvent) {
 
 function startResize(clientX: number, clientY: number, type: 'mouse' | 'touch') {
   resizing = true
-  resizeStart = { x: clientX, y: clientY }
-  initialSize = { ...props.size }
+  resizeStart = {x: clientX, y: clientY}
+  initialSize = {...props.size}
 
   if (type === 'mouse') {
     window.addEventListener('mousemove', onResizeMouse)
     window.addEventListener('mouseup', stopResize)
   } else {
-    window.addEventListener('touchmove', onResizeTouch, { passive: false })
+    window.addEventListener('touchmove', onResizeTouch, {passive: false})
     window.addEventListener('touchend', stopResize)
   }
 }
 
-function onResizeMouse(e: MouseEvent) { onResize(e.clientX, e.clientY) }
+function onResizeMouse(e: MouseEvent) {
+  onResize(e.clientX, e.clientY)
+}
+
 function onResizeTouch(e: TouchEvent) {
   e.preventDefault()
   onResize(e.touches[0].clientX, e.touches[0].clientY)
@@ -171,7 +188,7 @@ function onResize(clientX: number, clientY: number) {
   onScroll()
   const newWidth = Math.max(100, initialSize.width + (clientX - resizeStart.x))
   const newHeight = Math.max(100, initialSize.height + (clientY - resizeStart.y))
-  emit('resize', { width: newWidth, height: newHeight })
+  emit('resize', {width: newWidth, height: newHeight})
 }
 
 function stopResize() {
@@ -195,8 +212,8 @@ function toggleMaximize() {
 .overlay-panel {
   position: fixed;
   z-index: 10999;
-  background: #ffffff;
-  border: 2px solid black;
+  background: var(--main-background);
+  border: 2px solid var(--main-stroke);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
@@ -207,8 +224,8 @@ function toggleMaximize() {
 .panel-header {
   display: flex;
   justify-content: space-between;
-  background: #ffffff;
-  color: black;
+  background: var(--main-background);
+  color: var(--main-stroke);
   padding: 6px 12px;
   cursor: grab;
 }
@@ -218,16 +235,18 @@ function toggleMaximize() {
   gap: 8px;
 }
 
-.menu-item { cursor: pointer }
+.menu-item {
+  cursor: pointer
+}
 
 .content {
   overflow-x: auto;
   flex: 1;
-  color: black;
+  color: var(--main-text);
   margin-bottom: 20px;
   min-height: 50px;
   scrollbar-width: thick;
-  scrollbar-color: black white;
+  scrollbar-color: var(--main-stroke) var(--main-background);
 }
 
 .resize-handle {
@@ -237,14 +256,17 @@ function toggleMaximize() {
   right: 10px;
   bottom: 15px;
   cursor: se-resize;
-  color: black;
+  color: var(--main-text);
 }
 
-.resize-handle i { display: inline-block; transform: scaleX(-1); }
+.resize-handle i {
+  display: inline-block;
+  transform: scaleX(-1);
+}
 
 .more-to-come {
   position: absolute;
-  color: black;
+  color: var(--main-text);
   font-size: 14px;
   left: 10px;
   bottom: 5px;

@@ -2,11 +2,11 @@
   <div ref="root"></div>
 </template>
 
-<script setup lang="ts">
-import { onMounted, watch, ref } from 'vue'
-import { marked } from 'marked'
+<script lang="ts" setup>
+import {onMounted, watch, ref} from 'vue'
+import {marked} from 'marked'
 import IframeComponent from './components/IframeComponent.vue'
-import { createApp } from 'vue'
+import {createApp} from 'vue'
 
 const props = defineProps<{ content: string }>()
 
@@ -22,7 +22,7 @@ const render = () => {
     const mount = document.createElement('div')
     node.replaceWith(mount)
 
-    createApp(IframeComponent, { url }).mount(mount)
+    createApp(IframeComponent, {url}).mount(mount)
   })
 }
 
