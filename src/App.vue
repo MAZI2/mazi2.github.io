@@ -92,6 +92,7 @@ function resolvePanelComponent(panel: { route: string; props?: any }) {
   }
 }
 
+const isMobile = () => window.innerWidth <= 768
 
     
     
@@ -111,9 +112,9 @@ function resolvePanelComponent(panel: { route: string; props?: any }) {
       panels.value = panels.value.filter(p => p.route !== route)
 
       const width = Math.min(window.innerWidth * 0.9, 700)
-      const height = window.innerHeight - 250
+      const height = window.innerHeight - (isMobile() ? 300 : 250)
       const baseX = (window.innerWidth - width) / 2
-      const baseY = 200
+      const baseY = isMobile() ? 100 : 200
 
       let x = baseX
       let y = baseY

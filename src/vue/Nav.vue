@@ -76,6 +76,7 @@ export default defineComponent({
     position: fixed;
     top: 60px;
     right: 0px;
+    align-items: flex-start;
     background: white;
     border: 2px solid black;
     border-radius: 10px;
