@@ -1,0 +1,22 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="8" cy="8" r="8" fill="white"/>
+<mask id="mask0_1_78" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="16">
+<circle cx="8" cy="8" r="8" fill="white"/>
+</mask>
+<g mask="url(#mask0_1_78)">
+<path d="M7.48053 8H5.8182V9.24676L7.48053 8Z" fill="black"/>
+<path d="M7.48053 8L5.8182 6.85715V8H7.48053Z" fill="black"/>
+<path d="M3.013 8H5.8182M7.48053 8L5.8182 6.85715V8M7.48053 8L5.8182 9.24676V8M7.48053 8H5.8182" stroke="black" stroke-width="1.1" stroke-linecap="round"/>
+<path d="M10.0176 5.85836L8.75767 4.77401L7.94441 5.71899L10.0176 5.85836Z" fill="black"/>
+<path d="M10.0176 5.85836L9.50317 3.90777L8.75767 4.77401L10.0176 5.85836Z" fill="black"/>
+<path d="M6.63146 2.94416L8.75767 4.77401M10.0176 5.85836L9.50317 3.90777L8.75767 4.77401M10.0176 5.85836L7.94441 5.71899L8.75767 4.77401M10.0176 5.85836L8.75767 4.77401" stroke="black" stroke-width="1.1" stroke-linecap="round"/>
+<path d="M10.0176 10.0879L8.75767 11.1722L7.94441 10.2272L10.0176 10.0879Z" fill="black"/>
+<path d="M10.0176 10.0879L9.50317 12.0384L8.75767 11.1722L10.0176 10.0879Z" fill="black"/>
+<path d="M6.63146 13.0021L8.75767 11.1722M10.0176 10.0879L9.50317 12.0384L8.75767 11.1722M10.0176 10.0879L7.94441 10.2272L8.75767 11.1722M10.0176 10.0879L8.75767 11.1722" stroke="black" stroke-width="1.1" stroke-linecap="round"/>
+<circle cx="5.29873" cy="14.8572" r="2.25519" fill="white" stroke="black" stroke-width="1.1"/>
+<circle cx="0.519489" cy="8.2078" r="2.25519" fill="white" stroke="black" stroke-width="1.1"/>
+<circle cx="5.29873" cy="1.55844" r="2.25519" fill="white" stroke="black" stroke-width="1.1"/>
+<circle cx="13.4026" cy="8" r="4.17532" fill="white" stroke="black"/>
+<circle cx="8" cy="8" r="7.5" stroke="black"/>
+</g>
+</svg>
