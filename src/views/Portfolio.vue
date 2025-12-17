@@ -12,7 +12,7 @@
   <div>
 
        <span class="header"><b>Portfolio</b></span>
-    <div :class="['projects', { list: !viewGrid }]">
+    <div :class="['projects', { list: !viewGrid }]" >
       <div
         v-for="project in projects"
         :key="project.title"
@@ -26,14 +26,17 @@
             alt=""
             @click="openProjectPanel(project)"
           />
-          <h3>{{ project.title }}</h3>
+         <span class="left" @click="openProjectPanel(project)">
+                    <i class="fa fa-play" aria-hidden="true" @click="openProjectPanel(project)"></i>
+                    <b>{{ project.title }}</b>
+                </span>
           <p class="short">{{ project.short }}</p>
         </template>
 
         <!-- LIST VIEW -->
         <template v-else>
             <span class="title">
-                <span class="left">
+                <span class="left" @click="openProjectPanel(project)">
                     <i class="fa fa-play" aria-hidden="true" @click="openProjectPanel(project)"></i>
                     <b>{{ project.title }}</b>
                 </span>
@@ -59,20 +62,34 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { marked } from 'marked'
 
 const emit = defineEmits<{
   (e: 'open-panel', payload: { route: string; props?: any }): void
 }>()
 
-const viewGrid = ref(true)
+const viewGrid = ref(false)
 const toggleView = () => (viewGrid.value = !viewGrid.value)
 
 const projectFiles = import.meta.glob('../projects/*.md', {
   eager: true,
   as: 'raw'
 })
+
+const scrollContainer = ref<HTMLElement | null>(null)
+const showMoreToCome = ref(false)
+
+const onScroll = () => {
+  if (!scrollContainer.value) return
+  const container = scrollContainer.value
+
+  // check if scrolled to bottom (with some tolerance)
+  const atBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 5
+  showMoreToCome.value = atBottom
+  if (atBottom === true) console.log("hit")
+}
+
 
 interface Project {
   title: string
@@ -82,7 +99,44 @@ interface Project {
   image: string
   content: string
   gallery: string[]
+  iframes: string[]
 }
+
+marked.use({
+  extensions: [
+    {
+      name: 'iframe',
+      level: 'block',
+      start(src) {
+        return src.indexOf('```iframe')
+      },
+      tokenizer(src) {
+          if (!src.startsWith('```iframe')) return
+
+          const match = src.match(/^```iframe\n([\s\S]*?)\n```/)
+          if (!match) return
+
+          return {
+            type: 'iframe',
+            raw: match[0],
+            url: match[1].trim()
+          }
+        },
+      renderer(token) {
+        return `<iframe-placeholder data-url="${token.url}"></iframe-placeholder>`
+      }
+    }
+  ]
+})
+
+const extractIframes = (md: string): string[] => {
+  const html = marked(md)
+  const div = document.createElement('div')
+  div.innerHTML = html
+  return Array.from(div.querySelectorAll('[data-iframe]'))
+    .map(el => el.getAttribute('data-iframe')!)
+}
+
 
 const extractImages = (md: string) => {
   const html = marked(md)
@@ -105,18 +159,20 @@ const projects = ref<Project[]>(
 
     const content = raw.replace(/---[\s\S]*?---/, '').trim()
 const contentImages = extractImages(content)
+const iframeUrls = extractIframes(content)
 
-// header image first, then up to 3 content images
-
-const gallery = [
-  ...(metadata.image ? [metadata.image] : []),
-  ...contentImages.filter(img => img !== metadata.image)
-].slice(0, 4)
+const gallery = Array.from(
+  new Set([
+    ...(metadata.image ? [metadata.image] : []),
+    ...contentImages
+  ])
+).slice(0, 4)
 
 return {
   ...metadata,
   content,
-  gallery
+  gallery,
+  iframes: iframeUrls
 }
 
     
@@ -168,8 +224,11 @@ const openProjectPanel = (project: Project) => {
   display: grid;
   padding: 0 20px;
   margin-top: 20px;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0px;
+  grid-template-columns: repeat(auto-fill, 240px);
+  justify-content: start;
+  position: relative;
+  overflow-y: ; 
 }
 
 
@@ -177,11 +236,12 @@ const openProjectPanel = (project: Project) => {
 /* CARD BASE */
 .project-card {
   background: #fff;
+  width: 220px;
 }
 
 /* GRID VIEW */
 .project-image {
-  width: 100%;
+  width: 220px;
   height: 160px;
   object-fit: cover;
   border-radius: 8px;
@@ -192,6 +252,9 @@ const openProjectPanel = (project: Project) => {
 .short {
   font-size: 0.9rem;
   opacity: 0.8;
+  margin: 0;
+  padding: 0;
+  margin-bottom: 15px;
 }
 
 /* LIST VIEW */
@@ -209,6 +272,7 @@ const openProjectPanel = (project: Project) => {
         display: flex;
         align-items: center;
         gap: 8px;
+        cursor: pointer;
 
         i {
             cursor: pointer;
@@ -224,6 +288,8 @@ const openProjectPanel = (project: Project) => {
 .projects.list .project-card {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  margin-bottom: 20px;
 }
 
 .long {
@@ -245,6 +311,14 @@ const openProjectPanel = (project: Project) => {
   border-radius: 6px;
   cursor: pointer;
 }
+.more-to-come {
+  margin-top: 16px;
+  text-align: center;
+  padding: 8px 0;
+  color: #333;
+  font-weight: bold;
+}
+
 </style>
 
 

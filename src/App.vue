@@ -11,6 +11,7 @@
   :position="panel.position"
   :size="panel.size"
   :maximized="panel.maximized"
+  :with-more-to-come="panel.withMoreToCome"
   @drag="updatePosition(panel.id, $event)"
   @resize="updateSize(panel.id, $event)"
   @maximize="maximizePanel(panel.id)"
@@ -55,6 +56,7 @@ export default {
         prevPosition?: { x: number; y: number }
         prevSize?: { width: number; height: number }
         maximized?: boolean
+        withMoreToCome?: boolean
       }>
     >([])
 
@@ -108,7 +110,7 @@ function resolvePanelComponent(panel: { route: string; props?: any }) {
       // Remove existing panel with this route
       panels.value = panels.value.filter(p => p.route !== route)
 
-      const width = Math.min(window.innerWidth * 0.8, 700)
+      const width = Math.min(window.innerWidth * 0.9, 700)
       const height = window.innerHeight - 250
       const baseX = (window.innerWidth - width) / 2
       const baseY = 200
@@ -118,7 +120,7 @@ function resolvePanelComponent(panel: { route: string; props?: any }) {
 
       if (panels.value.length > 0) {
         const angle = Math.random() * Math.PI * 2
-        x += Math.cos(angle) * 20
+        x += Math.cos(angle) * 20 * (window.innerWidth/1920)
         y += Math.sin(angle) * 20
       }
 
@@ -128,7 +130,8 @@ function resolvePanelComponent(panel: { route: string; props?: any }) {
   props,
   position: { x, y },  // use calculated position
   size: { width, height },
-  maximized: false
+  maximized: false,
+  withMoreToCome: props.withMoreToCome
 })
     }
     

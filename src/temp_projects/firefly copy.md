@@ -9,6 +9,12 @@ image: /pictureOfMe.jpg
 ## Content
 
 Here is some content with **paragraphs**, images, and [links](https://example.com) that should open in an iframe panel.
+<img src="/Logo.svg" alt="Diagram" width="300" height="200" />
+<img src="/Logo.svg" alt="Diagram" width="300" height="200" />
+<img src="/Logo.svg" alt="Diagram" width="300" height="200" />
+
+
+
 
 
 # Project description:

@@ -131,6 +131,44 @@ props: {
         dragged = null
       })
 
+// --- Touch start ---
+canvas.value.addEventListener('touchstart', (e: TouchEvent) => {
+  if (!canvas.value) return
+  const rect = canvas.value.getBoundingClientRect()
+  const touch = e.touches[0]
+  const x = touch.clientX - rect.left
+  const y = touch.clientY - rect.top
+  dragged = findNeuronAt(x, y)
+  if (dragged) {
+    dragged.isDragged = true
+    dragged.timeCounter = 0
+    dragged.firing = true
+    dragged.firingTimer = 0
+    simulation.neurons.forEach(n => n.receivedSignals.clear())
+  }
+}, { passive: false })
+
+// --- Touch move ---
+canvas.value.addEventListener('touchmove', (e: TouchEvent) => {
+  if (!dragged || !canvas.value) return
+  e.preventDefault() // prevent page scrolling
+  const rect = canvas.value.getBoundingClientRect()
+  const touch = e.touches[0]
+  dragged.position.x = touch.clientX - rect.left + viewport.offsetX
+  dragged.position.y = touch.clientY - rect.top + viewport.offsetY
+}, { passive: false })
+
+// --- Touch end / cancel ---
+canvas.value.addEventListener('touchend', () => {
+  if (dragged) dragged.isDragged = false
+  dragged = null
+})
+canvas.value.addEventListener('touchcancel', () => {
+  if (dragged) dragged.isDragged = false
+  dragged = null
+})
+      
+
       // Animation loop
       let last = performance.now()
       const loop = (now: number) => {

@@ -1,19 +1,15 @@
 ---
 title: My First Project
 date: 2025-12-01
-short: Short description for grid view
+short: Short description for grid vieShort description for grid view
+Short description for grid view
+Short description for grid view
+w
 long: Longer description for list view with more details...
 image: /pictureOfMe.jpg
 ---
 
-## Content
-
-Here is some content with **paragraphs**, images, and [links](https://example.com) that should open in an iframe panel.
-
-<img src="/Logo.svg" alt="Diagram" width="300" height="200" />
-
-
-# Project description:
+### Project description:
 
 Description on the PIFcamp Website: https://pif.camp/firefly-2/
 
@@ -31,4 +27,6 @@ My recording of cicadas syncing: video_2025-11-07_20-28-12.mp4
 Results
 video_2025-11-05_22-55-05.mp4
 video_2025-11-05_22-55-14.mp4
-
+```iframe
+https://pif.camp/firefly-2/
+```

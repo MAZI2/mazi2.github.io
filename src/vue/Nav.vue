@@ -1,23 +1,41 @@
 <template>
   <nav class="navbar">
-      <div class="content">
-          <a @click="$emit('open-panel', '/about')">About me</a>
-          <a @click="$emit('open-panel', '/portfolio')">Portfolio</a>
-          <a @click="$emit('open-panel', '/route3')">Section 3</a>
+
+      <button class="hamburger" @click="toggleMobileMenu">
+          <i class="fa fa-bars" aria-hidden="true"></i>
+      </button>
+    <div class="content">
+      <!-- Hamburger for mobile -->
+
+      <!-- Links for desktop -->
+      <div class="links desktop">
+        <a @click="$emit('open-panel', '/about')">About me</a>
+        <a @click="$emit('open-panel', { route: '/portfolio', props: { withMoreToCome: true } })">Portfolio</a>
       </div>
+
+      <!-- Dropdown for mobile -->
+      <div class="links mobile" v-if="isMobileMenuOpen">
+        <a @click="$emit('open-panel', '/about'); isMobileMenuOpen=false">About me</a>
+        <a @click="$emit('open-panel', { route: '/portfolio', props: { withMoreToCome: true } }); isMobileMenuOpen=false">Portfolio</a>
+      </div>
+    </div>
   </nav>
 </template>
 
+
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 
 export default defineComponent({
   emits: ['open-panel'],
   setup(props, { emit }) {
-    const open = () => {
-        emit('open-panel', '/route1')
+    const isMobileMenuOpen = ref(false)
+
+    const toggleMobileMenu = () => {
+      isMobileMenuOpen.value = !isMobileMenuOpen.value
     }
-    return { open }
+
+    return { isMobileMenuOpen, toggleMobileMenu, emit }
   }
 })
 </script>
@@ -27,26 +45,81 @@ export default defineComponent({
   position: fixed;
   top: 150px;
   left: 50%;
-  transform: translate(-50%, -50%); /* Center horizontally & vertically */
-  min-width: 300px;   /* Minimum width */
+  transform: translateX(-50%);
+  min-width: 300px;
   max-width: 700px;
-  width: 80%;
+  width: 90%;
   background-color: #ffffff;
   border: 2px solid black;
   border-radius: 10px;
-  z-index: 10;        /* Make sure it floats above canvas */
+  z-index: 10;
   text-align: center;
 
-
   .content {
-  padding: 6px 12px;
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      gap: 15px;
-      align-items: flex-start;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    width: 100%;
+
+  }
+
+  .links.desktop {
+    display: flex;
+    gap: 15px;
+  }
+
+  .links.mobile {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    position: fixed;
+    top: 60px;
+    right: 0px;
+    background: white;
+    border: 2px solid black;
+    border-radius: 10px;
+    padding: 10px;
+    width: fit-content;
+  }
+
+  .hamburger {
+      position: fixed;
+      right: 0;
+      margin: 17px 10px;
+      padding: 0;
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: black;
+
+    i {
+      font-size: 20px;
+    }
   }
 }
+
+/* Mobile breakpoint */
+@media screen and (max-width: 600px) {
+    .navbar {
+        background: transparent;
+        border: none;
+        z-index: 200000;
+        top: 0;
+    }
+  .links.desktop {
+    display: none !important;
+  }
+  .hamburger {
+    display: block !important;
+  }
+  .links.mobile {
+    display: flex !important;
+  }
+}
+
 
 
 </style>

@@ -7,7 +7,7 @@
   <span class="control-item">
       <i class="pause-button" :class="paused ? 'fa fa-play' : 'fa fa-pause'" @click="toggle"></i>
 
-    <p>{{ paused ? 'Resume animation' : 'Pause animation' }}</p>
+    <p>{{ paused ? 'Resume simulation' : 'Pause simulation' }}</p>
     </span>
   </div>
 </template>
