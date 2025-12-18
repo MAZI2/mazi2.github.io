@@ -18,16 +18,14 @@ also enabling mutual data transmission that can be seen, heard, and configured.
 The synchronization phenomenon in nature:
 
 - [Multiple fireflies synchronizing](https://www.youtube.com/watch?v=IBgq-_NJCl0)
-- My recording of cicadas syncing:
+- My recording of cicadas syncing:<br>
   <video width="300" height="360" controls>
   <source src="/firefly/cicadas.mp4" type="video/mp4">
   Your browser does not support the video tag.
-
 </video>
 
 ### Results
-
-<img src="/firefly/res1.jpg" width="300" height="200" />
+<img src="https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg?semt=ais_hybrid&w=740&q=80" width="300" height="200" />
 <img src="/firefly/res2.jpg" width="300" height="200" />
 <img src="/firefly/res3.jpg" width="300" height="200" />
 <img src="/firefly/res4.png" width="300" height="200" />

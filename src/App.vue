@@ -110,7 +110,7 @@ export default {
       panels.value = panels.value.filter(p => p.route !== route)
 
       const width = Math.min(window.innerWidth * 0.9, 700)
-      const height = window.innerHeight - (isMobile() ? 300 : 250)
+      const height = window.innerHeight - (isMobile() ? 180 : 250)
       const baseX = (window.innerWidth - width) / 2
       const baseY = isMobile() ? 100 : 200
 
