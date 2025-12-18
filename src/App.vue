@@ -208,6 +208,10 @@ export default {
 
       panels.value = panels.value.filter(p => p.route !== route)
 
+      if (props.withMoreToCome === undefined) {
+        props.withMoreToCome = route === '/portfolio' // or any logic you want
+      }
+
       let position, size
       if (fromUrl) {
         const rect = getInitialPanelRect(route)
@@ -221,7 +225,15 @@ export default {
         position = { x, y }; size = { width: w, height: h }
       }
 
-      panels.value.push({ id: Date.now(), route, props, position, size, maximized: false })
+      panels.value.push({
+        id: Date.now(),
+        route,
+        props,
+        position,
+        size,
+        maximized: false,
+        withMoreToCome: props.withMoreToCome
+      })
     }
 
     function closePanel(id: number) { panels.value = panels.value.filter(p => p.id !== id) }
