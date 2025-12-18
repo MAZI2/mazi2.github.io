@@ -1,13 +1,13 @@
 <template>
-  <canvas ref="canvas" style="position: fixed; top: 0; left: 0;"></canvas>
+  <canvas ref="canvas"></canvas>
 </template>
 
 <script lang="ts">
-import {defineComponent, onMounted, ref} from 'vue'
-import {Simulation} from '../simulation/Simulation'
-import {CanvasRenderer} from '../rendering/CanvasRenderer'
-import {Viewport} from './Viewport'
-import {Neuron} from '../simulation/Neuron'
+import { defineComponent, onMounted, ref } from 'vue'
+import { Simulation } from '../simulation/Simulation'
+import { CanvasRenderer } from '../rendering/CanvasRenderer'
+import { Viewport } from './Viewport'
+import { Neuron } from '../simulation/Neuron'
 
 const TILE_SIZE = 400
 
@@ -26,8 +26,9 @@ export default defineComponent({
     let renderer: CanvasRenderer
     let dragged: Neuron | null = null
     let lastMouseEvent: MouseEvent | null = null
+    let lastTouchY = 0
 
-    // Efficient neuron picking using tiles
+    // Find neuron near pointer
     function findNeuronAt(mouseX: number, mouseY: number): Neuron | null {
       const worldX = mouseX + viewport.offsetX
       const worldY = mouseY + viewport.offsetY
@@ -66,7 +67,7 @@ export default defineComponent({
       viewport.height = canvas.value.height
       renderer = new CanvasRenderer(canvas.value)
 
-      // Handle resize
+      // Resize handling
       window.addEventListener('resize', () => {
         if (!canvas.value) return
         canvas.value.width = window.innerWidth
@@ -76,41 +77,9 @@ export default defineComponent({
         updateExclusionZone()
       })
 
-      // Handle scrolling (vertical only)
-      window.addEventListener('wheel', e => {
-        if (!props.getExclusionZone) return
-
-        const zones = simulation.exclusionZones
-
-        const mouseX = e.clientX
-        const mouseY = e.clientY
-
-        let blockScroll = false
-
-        zones.forEach((zone, index) => {
-          // Adjust first item (header)
-          if (index != 0) {
-            // For panels (from second onward), block scroll if mouse is inside zone
-            if (
-                mouseX >= zone.x - 100 &&
-                mouseX <= zone.x + zone.width + 200 &&
-                mouseY >= zone.y &&
-                mouseY <= zone.y + zone.height
-            ) {
-              blockScroll = true
-            }
-          }
-        })
-
-        if (blockScroll) return // ignore scroll over panels
-
-        // Handle scroll for canvas
-        e.preventDefault()
-        viewport.onScroll(e.deltaY)
-      }, {passive: false})
-
-
-      // Dragging neurons
+      // --------------------
+      // Mouse interactions
+      // --------------------
       canvas.value.addEventListener('mousedown', e => {
         const rect = canvas.value!.getBoundingClientRect()
         const x = e.clientX - rect.left
@@ -131,47 +100,84 @@ export default defineComponent({
         dragged = null
       })
 
-// --- Touch start ---
-      if (typeof window !== 'undefined' && 'TouchEvent' in window) {
-        canvas.value.addEventListener('touchstart', (e: TouchEvent) => {
-          if (!canvas.value) return
-          const rect = canvas.value.getBoundingClientRect()
-          const touch = e.touches[0]
-          const x = touch.clientX - rect.left
-          const y = touch.clientY - rect.top
-          dragged = findNeuronAt(x, y)
-          if (dragged) {
-            dragged.isDragged = true
-            dragged.timeCounter = 0
-            dragged.firing = true
-            dragged.firingTimer = 0
-            simulation.neurons.forEach(n => n.receivedSignals.clear())
-          }
-        }, {passive: false})
+      // Mouse wheel scroll for canvas background
+      window.addEventListener('wheel', e => {
+        if (!props.getExclusionZone) return
 
-// --- Touch move ---
-        canvas.value.addEventListener('touchmove', (e: TouchEvent) => {
-          if (!dragged || !canvas.value) return
-          e.preventDefault() // prevent page scrolling
-          const rect = canvas.value.getBoundingClientRect()
-          const touch = e.touches[0]
+        const zones = simulation.exclusionZones
+        const mouseX = e.clientX
+        const mouseY = e.clientY
+        let blockScroll = false
+
+        zones.forEach((zone, index) => {
+          if (index !== 0) {
+            if (
+                mouseX >= zone.x - 100 &&
+                mouseX <= zone.x + zone.width + 200 &&
+                mouseY >= zone.y &&
+                mouseY <= zone.y + zone.height
+            ) {
+              blockScroll = true
+            }
+          }
+        })
+
+        if (blockScroll) return
+
+        e.preventDefault()
+        viewport.onScroll(e.deltaY)
+      }, { passive: false })
+
+      // --------------------
+      // Touch interactions
+      // --------------------
+      canvas.value.addEventListener('touchstart', (e: TouchEvent) => {
+        if (!canvas.value) return
+        const rect = canvas.value.getBoundingClientRect()
+        const touch = e.touches[0]
+        lastTouchY = touch.clientY
+
+        dragged = findNeuronAt(
+            touch.clientX - rect.left,
+            touch.clientY - rect.top
+        )
+
+        if (dragged) {
+          dragged.isDragged = true
+          simulation.neurons.forEach(n => n.receivedSignals.clear())
+        }
+      }, { passive: false })
+
+      canvas.value.addEventListener('touchmove', (e: TouchEvent) => {
+        if (!canvas.value) return
+        e.preventDefault()
+        const rect = canvas.value.getBoundingClientRect()
+        const touch = e.touches[0]
+
+        if (dragged) {
+          // Drag neuron
           dragged.position.x = touch.clientX - rect.left + viewport.offsetX
           dragged.position.y = touch.clientY - rect.top + viewport.offsetY
-        }, {passive: false})
+        } else {
+          // Scroll canvas background
+          const deltaY = lastTouchY - touch.clientY
+          viewport.onScroll(deltaY)
+          lastTouchY = touch.clientY
+        }
+      }, { passive: false })
 
-// --- Touch end / cancel ---
-        canvas.value.addEventListener('touchend', () => {
-          if (dragged) dragged.isDragged = false
-          dragged = null
-        })
-        canvas.value.addEventListener('touchcancel', () => {
-          if (dragged) dragged.isDragged = false
-          dragged = null
-        })
-      }
+      canvas.value.addEventListener('touchend', () => {
+        if (dragged) dragged.isDragged = false
+        dragged = null
+      })
+      canvas.value.addEventListener('touchcancel', () => {
+        if (dragged) dragged.isDragged = false
+        dragged = null
+      })
 
-
+      // --------------------
       // Animation loop
+      // --------------------
       let last = performance.now()
       const loop = (now: number) => {
         const dt = (now - last) / 1000
@@ -180,12 +186,11 @@ export default defineComponent({
         if (!props.paused) {
           updateExclusionZone()
 
+          // Drag neurons with mouse
           if (dragged && lastMouseEvent && canvas.value) {
             const rect = canvas.value.getBoundingClientRect()
-            dragged.position.x =
-                lastMouseEvent.clientX - rect.left + viewport.offsetX
-            dragged.position.y =
-                lastMouseEvent.clientY - rect.top + viewport.offsetY
+            dragged.position.x = lastMouseEvent.clientX - rect.left + viewport.offsetX
+            dragged.position.y = lastMouseEvent.clientY - rect.top + viewport.offsetY
             lastMouseEvent = null
           }
 
@@ -193,20 +198,31 @@ export default defineComponent({
           simulation.updateVisibleTiles(viewport)
           renderer.draw(
               simulation,
-              {x: viewport.offsetX, y: viewport.offsetY},
+              { x: viewport.offsetX, y: viewport.offsetY },
               viewport.width,
               viewport.height
           )
           viewport.update()
         }
 
-        requestAnimationFrame(loop) // ✅ ALWAYS schedule next frame
+        requestAnimationFrame(loop)
       }
       requestAnimationFrame(loop)
     })
 
-    return {canvas}
+    return { canvas }
   }
 })
 </script>
 
+<style scoped>
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+  touch-action: none; /* important: disable native scrolling for canvas */
+}
+</style>

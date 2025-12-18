@@ -18,20 +18,19 @@
       @minimize="minimizePanel(panel.id)"
       @resize="updateSize(panel.id, $event)"
   >
-    <!-- Dynamically resolve component and props -->
     <component
         :is="resolvePanelComponent(panel).component"
         v-if="resolvePanelComponent(panel).component"
         v-bind="resolvePanelComponent(panel).props"
         @open-panel="openPanel"
     />
-
   </OverlayPanel>
-
 </template>
 
 <script lang="ts">
-import {ref, onMounted} from 'vue'
+import { ref, onMounted } from 'vue'
+import { marked } from 'marked'
+
 import Controls from './vue/Controls.vue'
 import ViewportComponent from './vue/Viewport.vue'
 import TitleHeader from './vue/Header.vue'
@@ -45,20 +44,133 @@ import Portfolio from './views/Portfolio.vue'
 import RouteThree from './views/RouteThree.vue'
 
 export default {
-  components: {Controls, Viewport: ViewportComponent, TitleHeader, NavBar, OverlayPanel},
+  components: {
+    Controls,
+    Viewport: ViewportComponent,
+    TitleHeader,
+    NavBar,
+    OverlayPanel
+  },
+
   setup() {
-    const panels = ref<
-        Array<{
-          id: number
-          route: string
-          position: { x: number; y: number }
-          size: { width: number; height: number }
-          prevPosition?: { x: number; y: number }
-          prevSize?: { width: number; height: number }
-          maximized?: boolean
-          withMoreToCome?: boolean
-        }>
-    >([])
+    interface Project {
+      slug: string
+      title: string
+      date: string
+      short: string
+      long: string
+      image: string
+      content: string
+      gallery: string[]
+      iframes: string[]
+    }
+
+    const projects = ref<Project[]>([])
+
+    // --------------------
+    // MARKED IFRAME EXTENSION
+    // --------------------
+    marked.use({
+      extensions: [
+        {
+          name: 'iframe',
+          level: 'block',
+          start(src) { return src.indexOf('```iframe') },
+          tokenizer(src) {
+            if (!src.startsWith('```iframe')) return
+            const match = src.match(/^```iframe\n([\s\S]*?)\n```/)
+            if (!match) return
+            return { type: 'iframe', raw: match[0], url: match[1].trim() }
+          },
+          renderer(token) {
+            return `<iframe-placeholder data-url="${token.url}"></iframe-placeholder>`
+          }
+        }
+      ]
+    })
+
+    const extractIframes = (md: string): string[] => {
+      const html = marked(md)
+      const div = document.createElement('div')
+      div.innerHTML = html
+      return Array.from(div.querySelectorAll('[data-iframe]'))
+          .map(el => el.getAttribute('data-iframe')!)
+    }
+
+    const extractImages = (md: string) => {
+      const html = marked(md)
+      const div = document.createElement('div')
+      div.innerHTML = html
+      return Array.from(div.querySelectorAll('img')).map(img => img.src)
+    }
+
+    // --------------------
+    // LOAD PROJECTS
+    // --------------------
+    async function loadProjects() {
+      const files: string[] = await fetch('https://mpog.dev/projects/projects.json').then(r => r.json())
+      const raws = await Promise.all(
+          files.map(f => fetch(`https://mpog.dev/projects/${f}`).then(r => r.text()))
+      )
+
+      projects.value = raws.map((raw, index) => {
+        const slug = files[index].replace(/\.md$/, '')
+        const frontmatterMatch = raw.match(/---\n([\s\S]*?)\n---/)
+        const metadata: any = {}
+
+        if (frontmatterMatch) {
+          frontmatterMatch[1].split('\n').forEach(line => {
+            const [key, ...rest] = line.split(':')
+            metadata[key.trim()] = rest.join(':').trim()
+          })
+        }
+
+        const content = raw.replace(/---[\s\S]*?---/, '').trim()
+        const images = extractImages(content)
+        const iframes = extractIframes(content)
+        const gallery = images.slice(0, 4)
+
+        return {
+          slug,
+          title: metadata.title || 'Untitled',
+          date: metadata.date || '',
+          short: metadata.short || '',
+          long: metadata.long || '',
+          image: metadata.image || images[0] || 'https://mpog.dev/content/default.png',
+          content,
+          gallery,
+          iframes
+        }
+      })
+    }
+
+    // --------------------
+    // URL BOOTSTRAP
+    // --------------------
+    function openFromURL() {
+      const path = window.location.pathname.replace(/^\/+/, '')
+
+      if (!path) {
+        openPanel('/about')
+        return
+      }
+
+      const project = projects.value.find(p => p.slug === path)
+      if (project) {
+        openPanel({ route: 'openProject', props: { project }, initial: 'url' })
+        return
+      }
+
+      if (['about', 'portfolio'].includes(path)) {
+        openPanel({ route: `/${path}`, initial: 'url' })
+      }
+    }
+
+    // --------------------
+    // PANELS & ROUTE COMPONENTS
+    // --------------------
+    const panels = ref<any[]>([])
+    const animationPaused = ref(false)
 
     const routeComponents: Record<string, any> = {
       '/about': AboutMe,
@@ -68,170 +180,78 @@ export default {
       openProject: ProjectPanel
     }
 
-    const animationPaused = ref(false)
-
-    const toggleAnimation = () => {
-      animationPaused.value = !animationPaused.value
-    }
-
-
-    function resolvePanelComponent(panel: { route: string; props?: any }) {
-      // Open external link
+    function resolvePanelComponent(panel: any) {
       if (panel.route === 'openExternal' && panel.props?.url) {
-        return {
-          component: OpenExternal,
-          props: {url: panel.props.url}
-        }
+        return { component: OpenExternal, props: { url: panel.props.url } }
       }
-
-      // Normal route mapping
+      if (panel.route === '/portfolio') {
+        return { component: Portfolio, props: { projects: projects.value } } // pass projects
+      }
       const component = routeComponents[panel.route] || null
-      return {
-        component,
-        props: panel.props || {}
-      }
+      return { component, props: panel.props || {} }
     }
 
     const isMobile = () => window.innerWidth <= 768
 
+    function getInitialPanelRect(route: string) {
+      const width = window.innerWidth * 0.95
+      const height = window.innerHeight - 150
+      return { position: { x: (window.innerWidth - width) / 2, y: 80 }, size: { width, height } }
+    }
 
-    const openPanel = (panelData: string | { route: string; props?: any }) => {
+    function openPanel(panelData: any) {
       let route = ''
-      let props = {}
+      let props: any = {}
+      let fromUrl = false
+      if (typeof panelData === 'string') route = panelData
+      else { route = panelData.route; props = panelData.props || {}; fromUrl = panelData.initial === 'url' }
 
-      if (typeof panelData === 'string') {
-        route = panelData
-      } else {
-        route = panelData.route
-        props = panelData.props || {}
-      }
-
-      // Remove existing panel with this route
       panels.value = panels.value.filter(p => p.route !== route)
 
-      const width = Math.min(window.innerWidth * 0.9, 700)
-      const height = window.innerHeight - (isMobile() ? 180 : 250)
-      const baseX = (window.innerWidth - width) / 2
-      const baseY = isMobile() ? 100 : 200
-
-      let x = baseX
-      let y = baseY
-
-      if (panels.value.length > 0) {
-        const angle = Math.random() * Math.PI * 2
-        x += Math.cos(angle) * 20 * (window.innerWidth / 1920)
-        y += Math.sin(angle) * 20
+      let position, size
+      if (fromUrl) {
+        const rect = getInitialPanelRect(route)
+        position = rect.position; size = rect.size
+      } else {
+        const w = Math.min(window.innerWidth * 0.9, 700)
+        const h = window.innerHeight - (isMobile() ? 180 : 250)
+        let x = (window.innerWidth - w) / 2
+        let y = isMobile() ? 100 : 150
+        if (panels.value.length > 0) { const angle = Math.random() * Math.PI * 2; x += Math.cos(angle) * 20; y += Math.sin(angle) * 20 }
+        position = { x, y }; size = { width: w, height: h }
       }
 
-      panels.value.push({
-        id: Date.now(),
-        route,
-        props,
-        position: {x, y},  // use calculated position
-        size: {width, height},
-        maximized: false,
-        withMoreToCome: props.withMoreToCome
-      })
+      panels.value.push({ id: Date.now(), route, props, position, size, maximized: false })
     }
 
+    function closePanel(id: number) { panels.value = panels.value.filter(p => p.id !== id) }
+    function updatePosition(id: number, pos: { x: number; y: number }) { const p = panels.value.find(p => p.id === id); if (p) p.position = pos }
+    function updateSize(id: number, size: { width: number; height: number }) { const p = panels.value.find(p => p.id === id); if (p) p.size = size }
+    function maximizePanel(id: number) { const p = panels.value.find(p => p.id === id); if (!p || p.maximized) return; p.prevPosition = { ...p.position }; p.prevSize = { ...p.size }; p.position = { x: 0, y: 0 }; p.size = { width: window.innerWidth, height: window.innerHeight }; p.maximized = true }
+    function minimizePanel(id: number) { const p = panels.value.find(p => p.id === id); if (!p) return; if (!p.prevPosition || !p.prevSize) { const rect = getInitialPanelRect(p.route); p.position = rect.position; p.size = rect.size } else { p.position = { ...p.prevPosition }; p.size = { ...p.prevSize } }; p.maximized = false }
+    function toggleAnimation() { animationPaused.value = !animationPaused.value }
 
-    onMounted(() => {
-      openPanel('/about') // or whatever your default route is
-    })
-
-    function updateSize(id: number, size: { width: number; height: number }) {
-      const p = panels.value.find(p => p.id === id)
-      if (p) p.size = size
-    }
-
-
-    function maximizePanel(id: number) {
-      const p = panels.value.find(p => p.id === id)
-      if (!p) return
-      if (!p.maximized) {
-        p.prevPosition = {...p.position}
-        p.prevSize = {...p.size}
-        p.position = {x: 0, y: 0}
-        p.size = {width: window.innerWidth, height: window.innerHeight}
-        p.maximized = true
-      }
-    }
-
-    function minimizePanel(id: number) {
-      const p = panels.value.find(p => p.id === id)
-      if (!p || !p.prevPosition || !p.prevSize) return
-      p.position = {...p.prevPosition}
-      p.size = {...p.prevSize}
-      p.maximized = false
-    }
-
-
-    const closePanel = (id: number) => {
-      panels.value = panels.value.filter(p => p.id !== id)
-    }
-
-    const updatePosition = (id: number, pos: { x: number; y: number }) => {
-      const panel = panels.value.find(p => p.id === id)
-      if (panel) panel.position = pos
-    }
-
-    const headerRef = ref<InstanceType<typeof TitleHeader> | null>(null)
-    const panelRef = ref<InstanceType<typeof OverlayPanel> | null>(null)
-
+    // --------------------
+    // VIEWPORT EXCLUSION
+    // --------------------
+    const headerRef = ref(null)
     function getExclusionZone() {
-      const zones: Array<{ x: number; y: number; width: number; height: number; padding: number }> = []
-
-      // Add header
+      const zones: any[] = []
       if (headerRef.value?.$el) {
         const rect = headerRef.value.$el.getBoundingClientRect()
-        zones.push({
-          x: rect.left,
-          y: rect.top,
-          width: rect.width,
-          height: rect.height,
-          padding: 20
-        })
+        zones.push({ x: rect.left, y: rect.top, width: rect.width, height: rect.height, padding: 20 })
       }
-
-      // Add all panels
-      panels.value.forEach(panel => {
-        // Attempt to get actual DOM element if needed
-        // If panels are floating and don't have refs, we can just use position + estimated width/height
-        zones.push({
-          x: panel.position.x + 100, // keep the subtraction from original code
-          y: panel.position.y,
-          width: panel.size.width - 200, // you can adjust this if you have actual panel width
-          height: panel.size.height, // match OverlayPanel height
-          padding: 20
-        })
-      })
-
+      panels.value.forEach(panel => zones.push({ x: panel.position.x + 100, y: panel.position.y, width: panel.size.width - 200, height: panel.size.height, padding: 20 }))
       return zones
     }
 
+    onMounted(async () => { await loadProjects(); openFromURL() })
 
-    return {
-      panels,
-      openPanel,
-      closePanel,
-      updatePosition,
-      headerRef,
-      panelRef,
-      getExclusionZone,
-      minimizePanel,
-      maximizePanel,
-      updateSize,
-      routeComponents,
-      toggleAnimation,
-      animationPaused,
-      resolvePanelComponent
-    }
+    return { panels, openPanel, closePanel, updatePosition, updateSize, maximizePanel, minimizePanel, resolvePanelComponent, toggleAnimation, animationPaused, getExclusionZone, headerRef }
   }
 }
 </script>
 
 <style>
-.app {
-  background: var(--main-background);
-}
+.app { background: var(--main-background); }
 </style>

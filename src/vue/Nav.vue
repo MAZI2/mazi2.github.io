@@ -43,7 +43,7 @@ export default defineComponent({
 <style scoped>
 .navbar {
   position: fixed;
-  top: 150px;
+  top: 100px;
   left: 50%;
   transform: translateX(-50%);
   min-width: 300px;

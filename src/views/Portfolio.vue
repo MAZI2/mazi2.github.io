@@ -2,57 +2,34 @@
   <div class="portfolio-top">
     <div class="separator"></div>
     <div class="portfolio-menu">
-      <i
-          :class="viewGrid ? 'fa fa-th-large' : 'fa fa-list'"
-          aria-hidden="true"
-          @click="toggleView"
-      ></i>
+      <i :class="viewGrid ? 'fa fa-th-large' : 'fa fa-list'" @click="toggleView"></i>
     </div>
   </div>
-  <div>
 
+  <div>
     <span class="header"><b>Portfolio</b></span>
     <div :class="['projects', { list: !viewGrid }]">
-      <div
-          v-for="project in projects"
-          :key="project.title"
-          class="project-card"
-      >
+      <div v-for="project in projects" :key="project.slug" class="project-card">
         <!-- GRID VIEW -->
         <template v-if="viewGrid">
-          <img
-              :src="project.image"
-              alt=""
-              class="project-image"
-              @click="openProjectPanel(project)"
-          />
-          <span class="left" @click="openProjectPanel(project)">
-                    <i aria-hidden="true" class="fa fa-play" @click="openProjectPanel(project)"></i>
-                    <b>{{ project.title }}</b>
-                </span>
+          <img :src="project.image" class="project-image" @click="openProject(project)" />
+          <span class="left" @click="openProject(project)">
+            <i class="fa fa-play"></i> <b>{{ project.title }}</b>
+          </span>
           <p class="short">{{ project.short }}</p>
         </template>
 
         <!-- LIST VIEW -->
         <template v-else>
-            <span class="title">
-                <span class="left" @click="openProjectPanel(project)">
-                    <i aria-hidden="true" class="fa fa-play" @click="openProjectPanel(project)"></i>
-                    <b>{{ project.title }}</b>
-                </span>
-                <span class="date">{{ project.date }}</span>
+          <span class="title">
+            <span class="left" @click="openProject(project)">
+              <i class="fa fa-play"></i> <b>{{ project.title }}</b>
             </span>
-
+            <span class="date">{{ project.date }}</span>
+          </span>
           <span class="long">{{ project.long }}</span>
-
           <div class="list-gallery">
-            <img
-                v-for="(img, idx) in project.gallery"
-                :key="idx"
-                :src="img"
-                class="list-thumb"
-                @click="openProjectPanel(project)"
-            />
+            <img v-for="(img, idx) in project.gallery" :key="idx" :src="img" class="list-thumb" @click="openProject(project)" />
           </div>
         </template>
       </div>
@@ -60,149 +37,23 @@
   </div>
 </template>
 
-
 <script lang="ts" setup>
-import {ref, onMounted, onBeforeUnmount} from 'vue'
-import {marked} from 'marked'
+import { ref } from 'vue'
 
 const emit = defineEmits<{
   (e: 'open-panel', payload: { route: string; props?: any }): void
 }>()
 
+const props = defineProps<{ projects: any[] }>()
+
+const projects = props.projects
 const viewGrid = ref(false)
 const toggleView = () => (viewGrid.value = !viewGrid.value)
 
-const projects = ref<Project[]>([])
-
-onMounted(async () => {
-  try {
-    const files = await fetch('https://mpog.dev/projects/projects.json').then(r => r.json())
-
-    const projectFiles = await Promise.all(
-        files.map(f => fetch(`https://mpog.dev/projects/${f}`).then(r => r.text()))
-    )
-
-    projects.value = projectFiles.map(raw => {
-      const frontmatterMatch = raw.match(/---\n([\s\S]*?)\n---/)
-      const metadata: any = {}
-
-      if (frontmatterMatch) {
-        frontmatterMatch[1].split('\n').forEach(line => {
-          const [key, ...rest] = line.split(':')
-          metadata[key.trim()] = rest.join(':').trim()
-        })
-      }
-
-      const content = raw.replace(/---[\s\S]*?---/, '').trim()
-      const contentImages = extractImages(content)
-      const iframeUrls = extractIframes(content)
-      const gallery = [...contentImages].slice(0, 4)
-
-      return {
-        title: metadata.title || 'Untitled',
-        date: metadata.date || '',
-        short: metadata.short || '',
-        long: metadata.long || '',
-        image: metadata.image || contentImages[0] || 'https://mpog.dev/content/default.png',
-        content,
-        gallery,
-        iframes: iframeUrls
-      }
-    })
-  } catch (err) {
-    console.error('Failed to load projects:', err)
-  }
-})
-
-
-// const files = await fetch('https://mpog.dev/projects/projects.json').then(res => res.json()) .catch(err => console.error(err));
-// const projectFiles2 = await Promise.all(
-//     files.map(f => fetch(`https://mpog.dev/projects/${f}`).then(r => r.text()))
-// );
-
-const projectFiles = import.meta.glob('../projects/*.md', {
-  eager: true,
-  as: 'raw'
-})
-
-const scrollContainer = ref<HTMLElement | null>(null)
-const showMoreToCome = ref(false)
-
-const onScroll = () => {
-  if (!scrollContainer.value) return
-  const container = scrollContainer.value
-
-  // check if scrolled to bottom (with some tolerance)
-  const atBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 5
-  showMoreToCome.value = atBottom
-  if (atBottom === true) console.log("hit")
-}
-
-
-interface Project {
-  title: string
-  date: string
-  short: string
-  long: string
-  image: string
-  content: string
-  gallery: string[]
-  iframes: string[]
-}
-
-marked.use({
-  extensions: [
-    {
-      name: 'iframe',
-      level: 'block',
-      start(src) {
-        return src.indexOf('```iframe')
-      },
-      tokenizer(src) {
-        if (!src.startsWith('```iframe')) return
-
-        const match = src.match(/^```iframe\n([\s\S]*?)\n```/)
-        if (!match) return
-
-        return {
-          type: 'iframe',
-          raw: match[0],
-          url: match[1].trim()
-        }
-      },
-      renderer(token) {
-        return `<iframe-placeholder data-url="${token.url}"></iframe-placeholder>`
-      }
-    }
-  ]
-})
-
-const extractIframes = (md: string): string[] => {
-  const html = marked(md)
-  const div = document.createElement('div')
-  div.innerHTML = html
-  return Array.from(div.querySelectorAll('[data-iframe]'))
-      .map(el => el.getAttribute('data-iframe')!)
-}
-
-
-const extractImages = (md: string) => {
-  const html = marked(md)
-  const div = document.createElement('div')
-  div.innerHTML = html
-  return Array.from(div.querySelectorAll('img')).map(img => img.src)
-}
-
-
-
-const openProjectPanel = (project: Project) => {
-  emit('open-panel', {
-    route: 'openProject',
-    props: {project}
-  })
+const openProject = (project: any) => {
+  emit('open-panel', { route: 'openProject', props: { project } })
 }
 </script>
-
 
 <style scoped>
 .portfolio-top {
