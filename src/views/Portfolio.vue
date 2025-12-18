@@ -72,6 +72,54 @@ const emit = defineEmits<{
 const viewGrid = ref(false)
 const toggleView = () => (viewGrid.value = !viewGrid.value)
 
+const projects = ref<Project[]>([])
+
+onMounted(async () => {
+  try {
+    const files = await fetch('https://mpog.dev/projects/projects.json').then(r => r.json())
+
+    const projectFiles = await Promise.all(
+        files.map(f => fetch(`https://mpog.dev/projects/${f}`).then(r => r.text()))
+    )
+
+    projects.value = projectFiles.map(raw => {
+      const frontmatterMatch = raw.match(/---\n([\s\S]*?)\n---/)
+      const metadata: any = {}
+
+      if (frontmatterMatch) {
+        frontmatterMatch[1].split('\n').forEach(line => {
+          const [key, ...rest] = line.split(':')
+          metadata[key.trim()] = rest.join(':').trim()
+        })
+      }
+
+      const content = raw.replace(/---[\s\S]*?---/, '').trim()
+      const contentImages = extractImages(content)
+      const iframeUrls = extractIframes(content)
+      const gallery = [...contentImages].slice(0, 4)
+
+      return {
+        title: metadata.title || 'Untitled',
+        date: metadata.date || '',
+        short: metadata.short || '',
+        long: metadata.long || '',
+        image: metadata.image || contentImages[0] || 'https://mpog.dev/content/default.png',
+        content,
+        gallery,
+        iframes: iframeUrls
+      }
+    })
+  } catch (err) {
+    console.error('Failed to load projects:', err)
+  }
+})
+
+
+// const files = await fetch('https://mpog.dev/projects/projects.json').then(res => res.json()) .catch(err => console.error(err));
+// const projectFiles2 = await Promise.all(
+//     files.map(f => fetch(`https://mpog.dev/projects/${f}`).then(r => r.text()))
+// );
+
 const projectFiles = import.meta.glob('../projects/*.md', {
   eager: true,
   as: 'raw'
@@ -145,39 +193,7 @@ const extractImages = (md: string) => {
   return Array.from(div.querySelectorAll('img')).map(img => img.src)
 }
 
-const projects = ref<Project[]>(
-    Object.entries(projectFiles).map(([_, raw]) => {
-      const frontmatterMatch = raw.match(/---\n([\s\S]*?)\n---/)
-      const metadata: any = {}
 
-      if (frontmatterMatch) {
-        frontmatterMatch[1].split('\n').forEach(line => {
-          const [key, ...rest] = line.split(':')
-          metadata[key.trim()] = rest.join(':').trim()
-        })
-      }
-
-      const content = raw.replace(/---[\s\S]*?---/, '').trim()
-      const contentImages = extractImages(content)
-      const iframeUrls = extractIframes(content)
-
-      const gallery = Array.from(
-          new Set([
-            ...(metadata.image ? [metadata.image] : []),
-            ...contentImages
-          ])
-      ).slice(0, 4)
-
-      return {
-        ...metadata,
-        content,
-        gallery,
-        iframes: iframeUrls
-      }
-
-
-    })
-)
 
 const openProjectPanel = (project: Project) => {
   emit('open-panel', {
