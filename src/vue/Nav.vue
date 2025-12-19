@@ -9,14 +9,16 @@
 
       <!-- Links for desktop -->
       <div class="links desktop">
-        <a @click="$emit('open-panel', '/about')">About me</a>
-        <a @click="$emit('open-panel', { route: '/portfolio', props: { withMoreToCome: true } })">Portfolio</a>
+        <a @click="$emit('open-panel', { route: '/about', props: {title: 'About me', slug: 'about'}})">About me</a>
+        <a @click="$emit('open-panel', { route: '/portfolio', props: { withMoreToCome: true, title: 'Portfolio', slug: 'portfolio' } })">Portfolio</a>
+        <a @click="$emit('open-panel', { route: '/blog', props: { withMoreToCome: true, title: 'Blog', slug: 'blog' } })">Blog</a>
       </div>
 
       <!-- Dropdown for mobile -->
       <div v-if="isMobileMenuOpen" class="links mobile">
-        <a @click="$emit('open-panel', '/about'); isMobileMenuOpen=false">About me</a>
-        <a @click="$emit('open-panel', { route: '/portfolio', props: { withMoreToCome: true } }); isMobileMenuOpen=false">Portfolio</a>
+        <a @click="$emit('open-panel', { route: '/about', props: {title: 'About me', slug: 'about'}}); isMobileMenuOpen=false">About me</a>
+        <a @click="$emit('open-panel', { route: '/portfolio', props: { withMoreToCome: true, title: 'Portfolio', slug: 'portfolio' } }); isMobileMenuOpen=false">Portfolio</a>
+        <a @click="$emit('open-panel', { route: '/blog', props: { withMoreToCome: true, title: 'Blog', slug: 'blog' } }); isMobileMenuOpen=false">Blog</a>
       </div>
     </div>
   </nav>
@@ -42,6 +44,7 @@ export default defineComponent({
 
 <style scoped>
 .navbar {
+  color: var(--main-text);
   position: fixed;
   top: 100px;
   left: 50%;

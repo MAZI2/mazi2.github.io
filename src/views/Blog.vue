@@ -1,47 +1,33 @@
 <template>
   <div class="portfolio-top">
     <div class="separator"></div>
-    <div class="portfolio-menu">
-      <i :class="viewGrid ? 'fa fa-th-large' : 'fa fa-list'" @click="toggleView"></i>
-    </div>
-  </div>
 
-  <div>
-    <div :class="['projects', { list: !viewGrid }]">
-      <div v-for="project in projects" :key="project.slug" class="project-card">
-        <!-- GRID VIEW -->
-        <template v-if="viewGrid">
-          <img :src="project.image" class="project-image" @click="openProject(project)" />
-          <span class="left" @click="openProject(project)">
-            <i class="fa fa-play"></i> <b>{{ project.title }}</b>
-          </span>
-          <p class="short">{{ project.short }}</p>
-        </template>
-        <!-- LIST VIEW -->
-        <template v-else>
-          <span class="title" @click="openProject(project)">
+  </div>
+  <div class="blog">
+    <div class="posts list">
+      <div v-for="post in posts" :key="post.slug" class="post-card">
+          <span class="title" @click="openpost(post)">
             <span class="left">
             <i class="fa fa-play"></i>
-            <b>{{ project.title }}</b>
+            <b v-html="post.title"></b>
               </span>
-            <span class="date"  v-if="project.colab && project.colab.length == 0">{{ formatDate(project.date) }}</span>
+            <span class="date"  v-if="post.colab && post.colab.length == 0">{{ formatDate(post.date) }}</span>
           </span>
-          <span class="colab" v-if="project.colab && project.colab.length">
+          <span class="colab" v-if="post.colab && post.colab.length">
              <p>
         with
-        <template v-for="(c, index) in project.colab" :key="c.name">
+        <template v-for="(c, index) in post.colab" :key="c.name">
           <a v-if="c.link" :href="c.link" target="_blank">{{ c.name }}</a>
           <span v-else>{{ c.name }}</span>
-          <span v-if="index < project.colab.length - 1">, </span>
+          <span v-if="index < post.colab.length - 1">, </span>
         </template>
     </p>
-            <span>{{ formatDate(project.date) }}</span>
+            <span>{{ formatDate(post.date) }}</span>
           </span>
-          <span class="long">{{ project.long }}</span>
+          <span class="long">{{ post.long }}</span>
           <div class="list-gallery">
-            <img v-for="(img, idx) in project.gallery" :key="idx" :src="img" class="list-thumb" @click="openProject(project)" />
+            <img v-for="(img, idx) in post.gallery" :key="idx" :src="img" class="list-thumb" @click="openpost(post)" />
           </div>
-        </template>
       </div>
     </div>
   </div>
@@ -54,16 +40,13 @@ const emit = defineEmits<{
   (e: 'open-panel', payload: { route: string; props?: any }): void
 }>()
 
-const props = defineProps<{ projects: any[] }>()
+const props = defineProps<{ posts: any[] }>()
 
-const projects = computed(() =>
-    [...props.projects].sort((a, b) => {
+const posts = computed(() =>
+    [...props.posts].sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime()
     })
 )
-
-const viewGrid = ref(false)
-const toggleView = () => (viewGrid.value = !viewGrid.value)
 
 const formatDate = (date: string | Date) => {
   const d = new Date(date)
@@ -73,7 +56,7 @@ const formatDate = (date: string | Date) => {
   return `${day}-${month}-${year}`
 }
 
-const openProject = (project: any) => {
+const openpost = (project: any) => {
   let panelProps: any = {}
   panelProps.project = project
   panelProps.title = project.title
@@ -104,21 +87,12 @@ const openProject = (project: any) => {
   margin: 0 10px;
   background: var(--main-stroke);
 }
-
-.portfolio-menu {
-  padding: 5px 12px;
-  display: flex;
-  justify-content: flex-end; /* push content to the right */
-  align-items: flex-start;
-  background: var(--main-background);
-  color: var(--main-text);
+.blog {
+  padding-top: 10px;
 }
 
-.header {
-  padding: 20px;
-}
 
-.projects {
+.posts {
   display: grid;
   padding: 0 20px;
   margin-top: 20px;
@@ -126,40 +100,21 @@ const openProject = (project: any) => {
   grid-template-columns: repeat(auto-fill, 240px);
   justify-content: start;
   position: relative;
-  overflow-y: ;
 }
 
 
 /* CARD BASE */
-.project-card {
+.post-card {
   background: var(--main-background);
   width: 220px;
 }
 
-/* GRID VIEW */
-.project-image {
-  width: 220px;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  cursor: pointer;
-}
-
-.short {
-  font-size: 0.9rem;
-  opacity: 0.8;
-  margin: 0;
-  padding: 0;
-  margin-bottom: 15px;
-}
-
 /* LIST VIEW */
-.projects.list {
+.posts.list {
   grid-template-columns: 1fr; /* single column */
-  gap: 20px; /* spacing between project cards */
+  gap: 20px; /* spacing between post cards */
 
-  .project-card {
+  .post-card {
     display: flex;
     flex-direction: column;
     width: 100%;

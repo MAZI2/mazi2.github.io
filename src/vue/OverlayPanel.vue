@@ -24,6 +24,21 @@
             @mousedown.stop
         ></i>
       </div>
+      <span class="title" v-html="props.title"></span>
+      <span
+          v-if="props.slug"
+          class="share"
+          @click.stop.prevent="copyShareUrl"
+          @mousedown.stop
+          @touchstart.stop
+      >
+  <i
+      v-if="!copied"
+      class="menu-item fa fa-share"
+      aria-hidden="true"
+  ></i>
+   <span v-else class="copied-text">Copied URL</span>
+</span>
 
     </div>
 
@@ -42,13 +57,22 @@
 </template>
 
 <script lang="ts" setup>
-import {defineProps, defineEmits, computed, ref, nextTick, watchEffect, onMounted} from 'vue'
+import {
+  defineProps,
+  defineEmits,
+  computed,
+  ref,
+  nextTick,
+  watchEffect
+} from 'vue'
 
 const props = defineProps<{
   position: { x: number; y: number }
   size: { width: number; height: number }
   maximized?: boolean
   withMoreToCome?: boolean
+  title?: string
+  slug?: string
 }>()
 
 const emit = defineEmits<{
@@ -63,8 +87,35 @@ const isHovered = ref(false)
 const showMoreToCome = ref(false)
 const scrollContainer = ref<HTMLElement | null>(null)
 
-defineExpose({isHovered})
+/* --------------------
+   SHARE / COPY STATE
+-------------------- */
+const copied = ref(false)
+let copiedTimeout: number | null = null
 
+async function copyShareUrl() {
+  if (!props.slug) return
+
+  const url = `https://mpog.dev/${props.slug}`
+
+  try {
+    await navigator.clipboard.writeText(url)
+    copied.value = true
+
+    if (copiedTimeout) clearTimeout(copiedTimeout)
+
+    copiedTimeout = window.setTimeout(() => {
+      copied.value = false
+      copiedTimeout = null
+    }, 3000)
+  } catch (err) {
+    console.error('Clipboard copy failed', err)
+  }
+}
+
+/* --------------------
+   PANEL STYLE
+-------------------- */
 const panelStyle = computed(() => ({
   left: props.position.x + 'px',
   top: props.position.y + 'px',
@@ -74,12 +125,12 @@ const panelStyle = computed(() => ({
 
 const onScroll = () => {
   if (!scrollContainer.value) return
-  const container = scrollContainer.value
-  showMoreToCome.value = container.scrollTop + container.clientHeight >= container.scrollHeight - 5
-      || container.scrollHeight <= container.clientHeight
+  const c = scrollContainer.value
+  showMoreToCome.value =
+      c.scrollTop + c.clientHeight >= c.scrollHeight - 5 ||
+      c.scrollHeight <= c.clientHeight
 }
 
-// ensure showMoreToCome updates after DOM changes
 watchEffect(async () => {
   await nextTick()
   onScroll()
@@ -88,36 +139,32 @@ watchEffect(async () => {
 function onMouseEnter() {
   isHovered.value = true
 }
-
 function onMouseLeave() {
   isHovered.value = false
 }
 
-// --------------------
-// DRAGGING
-// --------------------
+/* --------------------
+   DRAGGING
+-------------------- */
 let dragging = false
-let offset = {x: 0, y: 0}
+let offset = { x: 0, y: 0 }
 
 function startDragMouse(e: MouseEvent) {
   startDrag(e.clientX, e.clientY, 'mouse')
 }
-
 function startDragTouch(e: TouchEvent) {
-  if (typeof TouchEvent === 'undefined') return
   startDrag(e.touches[0].clientX, e.touches[0].clientY, 'touch')
 }
 
-function startDrag(clientX: number, clientY: number, type: 'mouse' | 'touch') {
+function startDrag(x: number, y: number, type: 'mouse' | 'touch') {
   dragging = true
-  offset.x = clientX - props.position.x
-  offset.y = clientY - props.position.y
+  offset = { x: x - props.position.x, y: y - props.position.y }
 
   if (type === 'mouse') {
     window.addEventListener('mousemove', onDragMouse)
     window.addEventListener('mouseup', stopDrag)
   } else {
-    window.addEventListener('touchmove', onDragTouch, {passive: false})
+    window.addEventListener('touchmove', onDragTouch, { passive: false })
     window.addEventListener('touchend', stopDrag)
   }
 }
@@ -125,17 +172,14 @@ function startDrag(clientX: number, clientY: number, type: 'mouse' | 'touch') {
 function onDragMouse(e: MouseEvent) {
   onDrag(e.clientX, e.clientY)
 }
-
 function onDragTouch(e: TouchEvent) {
   e.preventDefault()
   onDrag(e.touches[0].clientX, e.touches[0].clientY)
 }
-
-function onDrag(clientX: number, clientY: number) {
+function onDrag(x: number, y: number) {
   if (!dragging) return
-  emit('drag', {x: clientX - offset.x, y: clientY - offset.y})
+  emit('drag', { x: x - offset.x, y: y - offset.y })
 }
-
 function stopDrag() {
   dragging = false
   window.removeEventListener('mousemove', onDragMouse)
@@ -144,32 +188,30 @@ function stopDrag() {
   window.removeEventListener('touchend', stopDrag)
 }
 
-// --------------------
-// RESIZING
-// --------------------
+/* --------------------
+   RESIZING
+-------------------- */
 let resizing = false
-let resizeStart = {x: 0, y: 0}
-let initialSize = {width: 0, height: 0}
+let resizeStart = { x: 0, y: 0 }
+let initialSize = { width: 0, height: 0 }
 
 function startResizeMouse(e: MouseEvent) {
   startResize(e.clientX, e.clientY, 'mouse')
 }
-
 function startResizeTouch(e: TouchEvent) {
-  if (typeof TouchEvent === 'undefined') return
   startResize(e.touches[0].clientX, e.touches[0].clientY, 'touch')
 }
 
-function startResize(clientX: number, clientY: number, type: 'mouse' | 'touch') {
+function startResize(x: number, y: number, type: 'mouse' | 'touch') {
   resizing = true
-  resizeStart = {x: clientX, y: clientY}
-  initialSize = {...props.size}
+  resizeStart = { x, y }
+  initialSize = { ...props.size }
 
   if (type === 'mouse') {
     window.addEventListener('mousemove', onResizeMouse)
     window.addEventListener('mouseup', stopResize)
   } else {
-    window.addEventListener('touchmove', onResizeTouch, {passive: false})
+    window.addEventListener('touchmove', onResizeTouch, { passive: false })
     window.addEventListener('touchend', stopResize)
   }
 }
@@ -177,20 +219,17 @@ function startResize(clientX: number, clientY: number, type: 'mouse' | 'touch') 
 function onResizeMouse(e: MouseEvent) {
   onResize(e.clientX, e.clientY)
 }
-
 function onResizeTouch(e: TouchEvent) {
   e.preventDefault()
   onResize(e.touches[0].clientX, e.touches[0].clientY)
 }
-
-function onResize(clientX: number, clientY: number) {
+function onResize(x: number, y: number) {
   if (!resizing) return
-  onScroll()
-  const newWidth = Math.max(100, initialSize.width + (clientX - resizeStart.x))
-  const newHeight = Math.max(100, initialSize.height + (clientY - resizeStart.y))
-  emit('resize', {width: newWidth, height: newHeight})
+  emit('resize', {
+    width: Math.max(100, initialSize.width + (x - resizeStart.x)),
+    height: Math.max(100, initialSize.height + (y - resizeStart.y))
+  })
 }
-
 function stopResize() {
   resizing = false
   window.removeEventListener('mousemove', onResizeMouse)
@@ -199,14 +238,14 @@ function stopResize() {
   window.removeEventListener('touchend', stopResize)
 }
 
-// --------------------
-// MAXIMIZE / MINIMIZE
-// --------------------
+/* --------------------
+   MAXIMIZE
+-------------------- */
 function toggleMaximize() {
-  if (!props.maximized) emit('maximize')
-  else emit('minimize')
+  props.maximized ? emit('minimize') : emit('maximize')
 }
 </script>
+
 
 <style scoped>
 .overlay-panel {
@@ -222,8 +261,10 @@ function toggleMaximize() {
 }
 
 .panel-header {
+  position: relative;        /* needed for absolute positioning of title */
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start; /* align menu items to left */
+  align-items: center;
   background: var(--main-background);
   color: var(--main-stroke);
   padding: 6px 12px;
@@ -233,7 +274,42 @@ function toggleMaximize() {
 .menu {
   display: flex;
   gap: 8px;
+  z-index: 1; /* ensure menu is above title if needed */
 }
+
+.title {
+  position: absolute;       /* position independently */
+  left: 50%;                /* center horizontally */
+  transform: translateX(-50%); /* actually center */
+  white-space: nowrap;       /* prevent wrapping */
+  font-weight: bold;
+  pointer-events: none;      /* clicks pass through to panel if needed */
+  font-size: 14px;
+}
+.share {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 12px;
+
+  cursor: pointer;
+  user-select: none;
+  z-index: 2;
+}
+
+.copied-text {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--main-text);
+  white-space: nowrap;
+}
+
+
+
 
 .menu-item {
   cursor: pointer

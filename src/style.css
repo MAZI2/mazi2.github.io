@@ -9,8 +9,6 @@
     --main-text: white;
 }
 :root {
-
-
     user-select: none;
     font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
@@ -29,7 +27,6 @@
 
 a {
     font-weight: 500;
-    color: var(--main-text);
     text-decoration: inherit;
     cursor: pointer;
 }
