@@ -6,7 +6,14 @@ const fs = require("fs");
   try {
     await execa("git", ["checkout", "--orphan", "gh-pages-deploy-tmp"]);
     console.log("Building started...");
-    await execa("npm", ["run", "build"]);
+    const legacyFlag = "--openssl-legacy-provider";
+    const existingNodeOptions = process.env.NODE_OPTIONS || "";
+    const nodeOptions = existingNodeOptions.includes(legacyFlag)
+      ? existingNodeOptions
+      : `${existingNodeOptions} ${legacyFlag}`.trim();
+    await execa("npm", ["run", "build"], {
+      env: { ...process.env, NODE_OPTIONS: nodeOptions },
+    });
 
     const folderName = fs.existsSync("dist") ? "dist" : "build";
     await execa("git", ["--work-tree", folderName, "add", "--all"]);
